@@ -5,6 +5,7 @@ import { audio } from './engine.js';
 class Track {
   constructor() {
     this.el = null;
+    audio.musicPlaying = false;
     this.name = '';
     this.peaks = null;        // уровни для рисования волны
     this.sensitivity = 0.6;   // 0..1
@@ -38,8 +39,8 @@ class Track {
     this._url = url;
     this._source = audio.ctx.createMediaElementSource(el);
     this._source.connect(audio.trackGain);
-    el.addEventListener('play', () => this._emit());
-    el.addEventListener('pause', () => this._emit());
+    el.addEventListener('play', () => { audio.musicPlaying = true; this._emit(); });
+    el.addEventListener('pause', () => { audio.musicPlaying = false; this._emit(); });
     el.addEventListener('loadedmetadata', () => this._emit());
 
     this.peaks = null;
@@ -63,6 +64,7 @@ class Track {
     try { this._source.disconnect(); } catch (e) { /* уже отключён */ }
     URL.revokeObjectURL(this._url);
     this.el = null;
+    audio.musicPlaying = false;
     this.name = '';
     this.peaks = null;
     this._emit();

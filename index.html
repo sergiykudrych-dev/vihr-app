@@ -46,6 +46,9 @@
         <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-back"></use></svg>
       </a>
       <div class="game-score" id="game-score" aria-live="off">0</div>
+      <button class="icon-btn icon-btn--glass game-mute" id="game-mute" aria-pressed="false" aria-label="Выключить звук касаний">
+        <svg class="icon" aria-hidden="true"><use id="game-mute-icon" href="assets/img/icons/sprite.svg#i-sound"></use></svg>
+      </button>
       <p class="game-hint" id="game-hint"></p>
       <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
       <span class="rec-time" id="rec-time" hidden>0:00</span>
@@ -111,6 +114,18 @@
       <label class="label" for="sensitivity">Чувствительность</label>
       <input id="sensitivity" type="range" min="0" max="100" step="1">
       <output for="sensitivity" id="sensitivity-out"></output>
+    </div>
+
+    <span class="label">Громкость</span>
+    <div class="slider-row">
+      <label class="muted" for="track-volume" style="min-width: 118px">Трек</label>
+      <input id="track-volume" type="range" min="0" max="100" step="1">
+      <output for="track-volume" id="track-volume-out"></output>
+    </div>
+    <div class="slider-row">
+      <label class="muted" for="hits-mix" style="min-width: 118px">Касания под музыку</label>
+      <input id="hits-mix" type="range" min="0" max="100" step="5">
+      <output for="hits-mix" id="hits-mix-out"></output>
     </div>
 
     <a class="btn btn--primary btn--block" id="track-play-game" href="#play-vortex">Играть под этот трек</a>

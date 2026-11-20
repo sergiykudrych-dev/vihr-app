@@ -32,6 +32,8 @@
 .game-ui { position: absolute; inset: 0; pointer-events: none; }
 .game-ui > * { pointer-events: auto; }
 .game-back { position: absolute; top: calc(var(--safe-top) + 16px); left: var(--sp-4); }
+.game-mute { position: absolute; top: calc(var(--safe-top) + 16px); right: var(--sp-4); }
+.game-mute[aria-pressed="true"] { color: var(--c-text-3); }
 .game-score {
   position: absolute; top: calc(var(--safe-top) + 26px); left: 50%; transform: translateX(-50%);
   font-size: var(--fs-lg); font-weight: 700; color: var(--c-text); opacity: .85;

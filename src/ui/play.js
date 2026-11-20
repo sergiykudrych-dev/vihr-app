@@ -42,6 +42,22 @@ export function initPlay() {
     if (track.loaded && !track.playing && !runner.trackStarted) { runner.trackStarted = true; track.play(); }
   };
 
+  // Быстрое выключение звука касаний прямо в игре (музыка продолжает играть)
+  const mute = $('#game-mute');
+  const renderMute = () => {
+    mute.setAttribute('aria-pressed', String(audio.muted));
+    mute.setAttribute('aria-label', audio.muted ? 'Включить звук касаний' : 'Выключить звук касаний');
+    $('#game-mute-icon').setAttribute('href', `assets/img/icons/sprite.svg#${audio.muted ? 'i-sound-off' : 'i-sound'}`);
+  };
+  audio.muted = store.data.muted;
+  renderMute();
+  mute.addEventListener('click', () => {
+    audio.muted = !audio.muted;
+    store.set('muted', audio.muted);
+    renderMute();
+    toast(audio.muted ? 'Звук касаний выключен' : 'Звук касаний включён');
+  });
+
   recorder = new Recorder(canvas);
   $('#rec-btn').addEventListener('click', toggleRecord);
   if (!canRecord()) $('#rec-btn').hidden = true;

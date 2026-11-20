@@ -7,6 +7,9 @@ const defaults = {
   scale: 'pentatonic',
   volume: 0.7,
   sensitivity: 0.6,
+  trackVolume: 0.9,
+  hitsWithMusic: 0.5,
+  muted: false,
   react: { beat: true, bass: true, color: false },
   customGames: [],
 };

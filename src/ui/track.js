@@ -3,6 +3,7 @@
 import { $, el, bindSlider, fmtTime, toast } from './dom.js';
 import { track } from '../audio/track.js';
 import { store } from '../core/store.js';
+import { audio } from '../audio/engine.js';
 
 const REACTIONS = [
   { key: 'beat', title: 'Бит → вспышка', sub: 'Игра вздрагивает на каждый удар' },
@@ -98,6 +99,17 @@ export function initTrack() {
   bindSlider($('#sensitivity'), $('#sensitivity-out'), Math.round(track.sensitivity * 100), (v) => `${v}%`, (v) => {
     track.sensitivity = v / 100;
     store.set('sensitivity', v / 100);
+  });
+
+  audio.setTrackVolume(store.data.trackVolume);
+  audio.hitsWithMusic = store.data.hitsWithMusic;
+  bindSlider($('#track-volume'), $('#track-volume-out'), Math.round(store.data.trackVolume * 100), (v) => `${v}%`, (v) => {
+    store.set('trackVolume', v / 100);
+    audio.setTrackVolume(v / 100);
+  });
+  bindSlider($('#hits-mix'), $('#hits-mix-out'), Math.round(store.data.hitsWithMusic * 100), (v) => (v === 0 ? 'выкл' : `${v}%`), (v) => {
+    store.set('hitsWithMusic', v / 100);
+    audio.hitsWithMusic = v / 100;
   });
 
   // Волна обновляется, пока трек играет на этом экране

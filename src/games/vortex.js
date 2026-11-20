@@ -79,12 +79,43 @@ export class VortexGame extends Game {
       if (r.broken) continue;
       if (this.world.balls.some((b) => Math.hypot(b.x, b.y) > r.R + r.w + b.r)) this.breakRing(r);
     }
-    // Улетевшие шарики убираем; если всё разбито — начинаем заново
-    this.world.balls = this.world.balls.filter((b) => Math.hypot(b.x, b.y) < 420);
+    // Шарик, который вылетел за последнее целое кольцо, свободен: он гаснет и исчезает
+    for (const b of this.world.balls) {
+      const d = Math.hypot(b.x, b.y);
+      const outside = !this.rings.some((r) => !r.broken && r.R > d);
+      if (outside && !b.data.escaping) {
+        b.data.escaping = 0.35;
+        this.fx.burst(b.x, b.y, '#FFFFFF', 14, 260, 0.5);
+        this.fx.ring(b.x, b.y, '#FFFFFF', 30, 0.4);
+      }
+      if (b.data.escaping) {
+        b.data.escaping -= dt;
+        b.baseR = Math.max(0.5, b.baseR * 0.9);
+      }
+      this.unstick(b, d, dt);
+    }
+    this.world.balls = this.world.balls.filter((b) => !(b.data.escaping <= 0) && Math.hypot(b.x, b.y) < 420);
+    // Если всё разбито или шариков не осталось — начинаем заново
     const left = this.rings.filter((r) => !r.broken).length;
     if (left === 0 || this.world.balls.length === 0) {
       this._resetIn = (this._resetIn ?? 1.2) - dt;
       if (this._resetIn <= 0) { this._resetIn = null; this.reset(); }
+    }
+  }
+
+  /** Если шарик завис прямо в отверстии кольца дольше полсекунды — выталкиваем его наружу. */
+  unstick(b, d, dt) {
+    const inGap = this.rings.some((r) => {
+      if (r.broken || Math.abs(d - r.R) > b.r + r.w) return false;
+      const a = (((Math.atan2(b.y, b.x) - r.rot) % TAU) + TAU) % TAU;
+      return a > r.len;
+    });
+    b.data.gapTime = inGap ? (b.data.gapTime || 0) + dt : 0;
+    if (b.data.gapTime > 0.5 && d > 0.01) {
+      const sp = Math.max(260, b.speed);
+      b.vx = (b.x / d) * sp; b.vy = (b.y / d) * sp;
+      b.x += (b.x / d) * (b.r + 6); b.y += (b.y / d) * (b.r + 6);
+      b.data.gapTime = 0;
     }
   }
 

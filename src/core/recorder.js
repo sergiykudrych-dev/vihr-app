@@ -1,4 +1,9 @@
 // Запись игры в видео: картинка с canvas + весь звук (ноты и трек).
+//
+// Важно для iPhone (Safari):
+// - для каждой записи создаём НОВЫЙ аудио-выход и новый поток, иначе метки времени звука
+//   идут от запуска приложения и видео получается «сломанным» (длина в сотни часов);
+// - MP4 пишем одним куском (без нарезки на части), иначе Safari портит длительность.
 
 import { audio } from '../audio/engine.js';
 
@@ -26,15 +31,27 @@ export class Recorder {
 
   start() {
     audio.unlock();
-    const stream = this.canvas.captureStream(60);
-    const audioStream = audio.getRecordStream();
-    if (audioStream) audioStream.getAudioTracks().forEach((t) => stream.addTrack(t));
+    const video = this.canvas.captureStream(30).getVideoTracks()[0];
+    const tracks = [video];
+
+    // Новый выход звука только для этой записи
+    this.audioOut = audio.ctx ? audio.ctx.createMediaStreamDestination() : null;
+    if (this.audioOut) {
+      audio.compressor.connect(this.audioOut);
+      tracks.push(...this.audioOut.stream.getAudioTracks());
+    }
+    this.stream = new MediaStream(tracks);
+
     const mimeType = TYPES.find((t) => MediaRecorder.isTypeSupported(t)) || '';
     this.mimeType = mimeType || 'video/webm';
     this.chunks = [];
-    this.rec = new MediaRecorder(stream, mimeType ? { mimeType, videoBitsPerSecond: 6_000_000 } : undefined);
-    this.rec.ondataavailable = (e) => { if (e.data.size) this.chunks.push(e.data); };
-    this.rec.start(250);
+    this.rec = new MediaRecorder(this.stream, mimeType
+      ? { mimeType, videoBitsPerSecond: 5_000_000, audioBitsPerSecond: 128_000 }
+      : undefined);
+    this.rec.ondataavailable = (e) => { if (e.data && e.data.size) this.chunks.push(e.data); };
+    // MP4 — одним куском, WebM — частями (так надёжнее в Chrome)
+    if (this.mimeType.includes('mp4')) this.rec.start();
+    else this.rec.start(500);
     this.startedAt = performance.now();
   }
 
@@ -43,12 +60,22 @@ export class Recorder {
     return new Promise((resolve) => {
       if (!this.rec) return resolve(null);
       this.rec.onstop = () => {
-        const blob = new Blob(this.chunks, { type: this.mimeType });
-        this.rec = null;
+        const blob = new Blob(this.chunks, { type: this.mimeType.split(';')[0] });
+        this.cleanup();
         resolve(blob);
       };
       this.rec.stop();
     });
+  }
+
+  cleanup() {
+    if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+    if (this.audioOut) {
+      try { audio.compressor.disconnect(this.audioOut); } catch (e) { /* уже отключён */ }
+    }
+    this.stream = null;
+    this.audioOut = null;
+    this.rec = null;
   }
 }
 

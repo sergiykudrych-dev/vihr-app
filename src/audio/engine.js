@@ -16,6 +16,9 @@ class AudioEngine {
     this.pack = 'glass';
     this.scale = 'pentatonic';
     this.volume = 0.7;
+    this.hitsWithMusic = 0.5;  // громкость касаний, пока играет трек (0 — выключены)
+    this.musicPlaying = false; // выставляет track.js
+    this.muted = false;        // кнопка на игровом экране
     this._hits = [];
     this._lastNote = new Map();
   }
@@ -37,7 +40,7 @@ class AudioEngine {
       this.master.connect(this.compressor);
 
       this.trackGain = this.ctx.createGain();
-      this.trackGain.gain.value = 0.9;
+      this.trackGain.gain.value = this.trackVolume ?? 0.9;
       this.trackGain.connect(this.compressor);
 
       this.analyser = this.ctx.createAnalyser();
@@ -51,19 +54,14 @@ class AudioEngine {
 
   get ready() { return !!this.ctx && this.ctx.state === 'running'; }
 
+  setTrackVolume(v) {
+    this.trackVolume = v;
+    if (this.trackGain) this.trackGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02);
+  }
+
   setVolume(v) {
     this.volume = v;
     if (this.master) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02);
-  }
-
-  /** Поток для MediaRecorder: всё, что звучит, плюс трек. */
-  getRecordStream() {
-    if (!this.ctx) return null;
-    if (!this.recordDest) {
-      this.recordDest = this.ctx.createMediaStreamDestination();
-      this.compressor.connect(this.recordDest);
-    }
-    return this.recordDest.stream;
   }
 
   /**
@@ -73,7 +71,11 @@ class AudioEngine {
    * @param {object} [o] { pack, octave }
    */
   hit(index, vel = 0.7, o = {}) {
-    if (!this.ready) return;
+    if (!this.ready || this.muted) return;
+    // Под музыку касания тише (или совсем выключены) — настройка на экране «Трек»
+    const mix = this.musicPlaying ? this.hitsWithMusic : 1;
+    if (mix <= 0.001) return;
+    vel *= mix;
     const now = performance.now();
     this._hits = this._hits.filter((t) => now - t < WINDOW_MS);
     if (this._hits.length >= MAX_HITS_PER_WINDOW) return;
@@ -87,7 +89,7 @@ class AudioEngine {
     const span = 12;
     const i = ((Math.round(index) % span) + span) % span;
     const f = noteFreq(i, this.scale, (pack.octave || 0) + (o.octave || 0));
-    const v = Math.max(0.08, Math.min(1, vel));
+    const v = Math.max(0.02, Math.min(1, vel));
     pack.play(this.ctx, this.master, f, v, this.ctx.currentTime + 0.001);
   }
 
