@@ -213,16 +213,23 @@ export async function leavePlay() {
 
 const customColors = () => ({ from: store.data.paletteFrom, to: store.data.paletteTo });
 
+/** Палитра текущей игры: своя у каждой игры, иначе палитра игры по умолчанию, иначе общая. */
+function currentPalette() {
+  const own = (store.data.gamePalettes || {})[currentId];
+  return own || (runner.game && runner.game.defaultPalette) || store.data.palette;
+}
+
 function applyPalette() {
   const g = runner.game;
-  if (g && g.setPalette) g.setPalette(store.data.palette, customColors());
+  if (g && g.setPalette) g.setPalette(currentPalette(), customColors());
 }
 
 function renderSwatches() {
-  const current = store.data.palette;
+  const current = currentPalette();
   $('#palette-grid').replaceChildren(...PALETTE_KEYS.map((key) => el('button', {
     class: 'swatch', type: 'button', 'aria-pressed': String(key === current),
     onclick: () => {
+      store.data.gamePalettes = { ...(store.data.gamePalettes || {}), [currentId]: key };
       store.set('palette', key);
       applyPalette();
       renderSwatches();
