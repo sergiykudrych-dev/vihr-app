@@ -30,7 +30,7 @@ export function hsl(h, s = 92, l = 58) { return `hsl(${((h % 360) + 360) % 360},
 
 /** Шарик с ореолом. */
 export function drawBall(ctx, b, extraGlow = 0) {
-  const glow = b.r * (3 + b.flash * 2 + extraGlow);
+  const glow = b.r * (3 + b.flash * 0.8 + extraGlow);
   ctx.globalCompositeOperation = 'lighter';
   ctx.drawImage(glowSprite(b.color), b.x - glow, b.y - glow, glow * 2, glow * 2);
   ctx.globalCompositeOperation = 'source-over';

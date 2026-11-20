@@ -102,10 +102,10 @@ export class VortexGame extends Game {
     for (const r of this.rings) {
       if (r.broken) continue;
       const color = this.react.color ? `hsl(${(this.hueShift + r.data.ring * 28) % 360},92%,60%)` : r.color;
-      neonStroke(ctx, color, r.w * (1 + r.pulse * 0.8), () => {
+      neonStroke(ctx, color, r.w * (1 + r.pulse * 0.12), () => {
         ctx.beginPath();
         ctx.arc(0, 0, r.R, r.rot, r.rot + r.len);
-      }, 0.7 + r.pulse);
+      }, 0.7 + r.pulse * 0.45);
     }
     // Тёмный центр
     ctx.fillStyle = withAlpha('#1A1740', 0.9);
