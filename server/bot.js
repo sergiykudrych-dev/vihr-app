@@ -19,6 +19,16 @@ export function startBot({ token, webAppUrl, adminIds }) {
   // Кнопка статистики внизу чата — только у админа
   const adminKeyboard = { reply_markup: { keyboard: [[...(webAppUrl ? [{ text: '🌀 Play', web_app: { url: webAppUrl } }] : []), { text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
 
+  // Короткая сводка за сегодня; к ней цепляется нижняя клавиатура админа
+  async function sendToday(chat) {
+    try {
+      const s = await stats();
+      await send(chat, `📊 Сегодня: игроков ${s.dau} (новых ${s.new_today}), показов рекламы ${s.ads_today}`, adminKeyboard);
+    } catch (e) {
+      await send(chat, '📊', adminKeyboard);
+    }
+  }
+
   async function sendStats(chat) {
     const s = await stats();
     const top = s.top_games.slice(0, 5).map((g) => `• ${g.game}: ${g.plays}`).join('\n') || '—';
@@ -36,11 +46,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
     const isAdmin = adminIds.includes(msg.from && msg.from.id);
     if (text.startsWith('/start')) {
       await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', playButton);
-      if (isAdmin) {
-        // клавиатура цепляется к сообщению; сразу удаляем его — кнопки остаются
-        const r = await send(chat, '📊', adminKeyboard);
-        if (r && r.ok) api('deleteMessage', { chat_id: chat, message_id: r.result.message_id }).catch(() => {});
-      }
+      if (isAdmin) await sendToday(chat);
     } else if ((text.startsWith('/stats') || text === STATS_BTN) && isAdmin) {
       await sendStats(chat);
     }
