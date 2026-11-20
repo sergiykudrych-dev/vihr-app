@@ -11,19 +11,13 @@ export function startBot({ token, webAppUrl, adminIds }) {
   const send = (chat_id, text, extra = {}) => api('sendMessage', { chat_id, text, ...extra });
 
   const STATS_BTN = '📊 Статистика';
-  const PLAY_BTN = '🌀 Play';
 
-  // Кнопки внизу чата: у админа — ещё и статистика
-  const keyboard = (isAdmin) => ({
-    reply_markup: {
-      keyboard: [
-        webAppUrl ? [{ text: PLAY_BTN, web_app: { url: webAppUrl } }] : [],
-        ...(isAdmin ? [[{ text: STATS_BTN }]] : []),
-      ].filter((row) => row.length),
-      resize_keyboard: true,
-      is_persistent: true,
-    },
-  });
+  // Кнопка «Play» под сообщением (как раньше)
+  const playButton = webAppUrl
+    ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Play', web_app: { url: webAppUrl } }]] } }
+    : {};
+  // Кнопка статистики внизу чата — только у админа
+  const adminKeyboard = { reply_markup: { keyboard: [[{ text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
 
   async function sendStats(chat) {
     const s = await stats();
@@ -33,7 +27,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
       `Активных: сегодня ${s.dau}, за 7 дней ${s.wau}, за 30 дней ${s.mau}\n` +
       `Среднее время игры: ${s.avg_sec} с\nВидео за 7 дней: ${s.videos_7d}\n` +
       `Показов рекламы: сегодня ${s.ads_today}, за 7 дней ${s.ads_7d}\n\nТоп игр за 7 дней:\n${top}`,
-      keyboard(true));
+      adminKeyboard);
   }
 
   async function handle(msg) {
@@ -41,7 +35,8 @@ export function startBot({ token, webAppUrl, adminIds }) {
     const text = (msg.text || '').trim();
     const isAdmin = adminIds.includes(msg.from && msg.from.id);
     if (text.startsWith('/start')) {
-      await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', keyboard(isAdmin));
+      await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', playButton);
+      if (isAdmin) await send(chat, 'Админ: статистика — кнопкой внизу 👇', adminKeyboard);
     } else if ((text.startsWith('/stats') || text === STATS_BTN) && isAdmin) {
       await sendStats(chat);
     }
