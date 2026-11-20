@@ -36,7 +36,11 @@ export function startBot({ token, webAppUrl, adminIds }) {
     const isAdmin = adminIds.includes(msg.from && msg.from.id);
     if (text.startsWith('/start')) {
       await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', playButton);
-      if (isAdmin) await send(chat, '📊', adminKeyboard);
+      if (isAdmin) {
+        // клавиатура цепляется к сообщению; сразу удаляем его — кнопки остаются
+        const r = await send(chat, '📊', adminKeyboard);
+        if (r && r.ok) api('deleteMessage', { chat_id: chat, message_id: r.result.message_id }).catch(() => {});
+      }
     } else if ((text.startsWith('/stats') || text === STATS_BTN) && isAdmin) {
       await sendStats(chat);
     }
