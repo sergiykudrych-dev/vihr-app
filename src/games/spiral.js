@@ -46,8 +46,8 @@ export class SpiralGame extends Game {
     this.rings = [];
     for (let k = 0; k < n; k++) {
       const R = INNER_R + k * step;
-      // Первые кольца маленькие и шарик в них не пролезал: разрыв там заметно шире, дальше сужается до обычного
-      const gap = Math.max(GAP, (BALL_R * 4.5) / R) + 0.9 * Math.max(0, 1 - k / 12);
+      // Первые кольца маленькие и шарик в них не пролезал: разрыв там заметно шире и плавно сужается до обычного примерно к середине
+      const gap = Math.max(GAP, (BALL_R * 4.5) / R) + 1.0 * Math.max(0, 1 - k / (n * 0.45));
       this.rings.push({
         cx: 0, cy: 0, R, w: this.w,
         start: 0, len: TAU - gap, rot: k * TWIST + (this.rot0 || 0),
