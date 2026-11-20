@@ -3,6 +3,7 @@
 import { $, el, pressGroup } from './dom.js';
 import { GAMES, CATEGORIES, CUSTOM_META } from '../games/registry.js';
 import { store } from '../core/store.js';
+import { api } from '../core/api.js';
 
 let category = 'all';
 
@@ -10,7 +11,7 @@ function allGames() {
   const mine = store.data.customGames.map((g) => ({
     id: 'custom-' + g.id, title: g.name, sub: 'Своя игра', ...CUSTOM_META,
   }));
-  return [...GAMES, ...mine];
+  return [...GAMES, ...mine].filter((g) => !api.isDisabled(g.id));
 }
 
 function renderGrid() {
@@ -32,7 +33,8 @@ function renderGrid() {
 function renderHero() {
   // Игра дня меняется каждый день
   const day = Math.floor(Date.now() / 86400000);
-  const g = GAMES[day % GAMES.length];
+  const open = GAMES.filter((x) => !api.isDisabled(x.id));
+  const g = open.length ? open[day % open.length] : GAMES[0];
   $('#hero-title').textContent = g.title;
   $('#hero-sub').textContent = g.sub;
   $('#hero-art').src = g.thumb;
@@ -42,6 +44,7 @@ function renderHero() {
 export function initGames() {
   pressGroup($('#categories'), CATEGORIES.map((c) => [c.id, c.name]), category, (id) => { category = id; renderGrid(); }, 'chip');
   renderHero();
+  api.onChange(() => { renderHero(); renderGrid(); });
 }
 
 export function enterGames() {

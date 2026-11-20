@@ -81,3 +81,6 @@ svg { display: block; }
 
 /* Внутри Telegram: системная кнопка «Назад» уже есть, свою прячем */
 .in-telegram .game-back { display: none; }
+
+/* Атрибут hidden должен скрывать элемент, даже если у класса задан display */
+[hidden] { display: none !important; }

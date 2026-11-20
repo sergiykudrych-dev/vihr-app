@@ -91,3 +91,7 @@ python3 tools/stamp.py
 - Перенос на Unity или Godot для App Store и Google Play.
 - Общая лента игр из конструктора и онлайн-комнаты.
 - Больше наборов звуков и игр.
+
+## Сервер и Telegram
+
+Папка `server/` — сервер для статистики, админки и выключения игр (Railway + Postgres). Инструкция: [server/README.md](server/README.md). Пока `API_URL` в `src/config.js` пуст, игра работает без сервера.

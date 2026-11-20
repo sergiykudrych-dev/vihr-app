@@ -8,6 +8,7 @@ import { store } from '../core/store.js';
 import { track } from '../audio/track.js';
 import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
+import { api } from '../core/api.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 
 let runner = null;
@@ -15,6 +16,7 @@ let recorder = null;
 let recTimer = 0;
 let lastScore = -1;
 let currentId = null;
+let playStart = 0; // когда началась игра (для статистики)
 
 export function findGame(id) {
   const g = GAMES.find((x) => x.id === id);
@@ -143,12 +145,16 @@ async function saveCurrentVideo() {
   const result = await saveVideo(videoBlob);
   if (result === 'cancelled') return;
   closeVideo();
+  api.event('record', currentId);
   toast(result === 'shared' ? 'Готово' : 'Видео скачано');
 }
 
 export function enterPlay(id) {
   const found = findGame(id);
   if (!found) { go('games'); return; }
+  if (api.isDisabled(id)) { toast('Игра временно недоступна'); go('games'); return; }
+  api.event('play_start', id);
+  playStart = performance.now();
   lastScore = -1;
   store.set('lastGame', id); // экран «Трек» предложит эту игру
   audio.setTrackMix(1);
@@ -169,7 +175,19 @@ export function enterPlay(id) {
   if (track.loaded && audio.ctx) { runner.trackStarted = true; track.play()?.catch?.(() => { runner.trackStarted = false; }); }
 }
 
+function flushPlay() {
+  if (playStart && currentId) api.event('play_end', currentId, performance.now() - playStart);
+  playStart = 0;
+}
+
+// Свернули игру или закрыли Telegram — сохраняем время игры
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) flushPlay();
+  else if (currentId && $('#app').dataset.route === 'play') playStart = performance.now();
+});
+
 export async function leavePlay() {
+  flushPlay();
   audio.setTrackMix(1); // игра могла приглушить трек — возвращаем громкость
   if (recorder && recorder.active) await recorder.stop();
   clearInterval(recTimer);
