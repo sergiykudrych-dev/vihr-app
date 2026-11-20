@@ -16,17 +16,17 @@ const OUTER_R = 430;      // последнее кольцо (за краями 
 const GAP = 0.95;         // ширина разрыва, рад (~55°)
 const TWIST = 0.042;      // поворот разрыва от кольца к кольцу — спираль закручена сильнее
 const SPIN = 0.55;        // вращение спирали, рад/с
-const BALL_R = 5.5;
-const MIN_BOUNCE = 120;   // минимальная скорость отлёта от линии после удара
-const GRAVITY = 55;       // шарик всё время тянет вниз с одной и той же силой
+const BALL_R = 7;
+const MIN_BOUNCE = 95;    // минимальная скорость отлёта от линии после удара
+const GRAVITY = 90;       // шарик всё время тянет вниз с одной и той же силой
 
 export class SpiralGame extends Game {
   setup() {
     this.padding = 1.04;
     this.world.gravity = GRAVITY;
     this.world.minSpeed = 0;     // шарик летит по траектории под действием притяжения вниз
-    this.world.maxSpeed = 520;
-    this.world.restitution = 0.93; // отскок сильнее — шарик отбивается от линий
+    this.world.maxSpeed = 700;
+    this.world.restitution = 0.88; // отскок сильнее — шарик отбивается от линий
     this.world.ballCollisions = true;
     this.maxBalls = 1;   // всегда ровно один шарик
     this.ringCount = RINGS;
@@ -78,7 +78,7 @@ export class SpiralGame extends Game {
 
   addBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 180, vy: -120, r: BALL_R, color: '#2EF0E0' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 230, vy: -150, r: BALL_R, color: '#2EF0E0' });
   }
 
   tap(x, y) {
