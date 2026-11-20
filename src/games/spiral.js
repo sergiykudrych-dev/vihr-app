@@ -17,13 +17,15 @@ const GAP = 0.95;         // ширина разрыва, рад (~55°)
 const TWIST = 0.042;      // поворот разрыва от кольца к кольцу — спираль закручена сильнее
 const SPIN = 0.55;        // вращение спирали, рад/с
 const BALL_R = 5.5;
+const GRAVITY = 260;      // шарик всё время тянет вниз с одной и той же силой
 
 export class SpiralGame extends Game {
   setup() {
     this.padding = 1.04;
-    this.world.gravity = 0;
-    this.world.minSpeed = 140;
-    this.world.maxSpeed = 420;
+    this.world.gravity = GRAVITY;
+    this.world.minSpeed = 0;     // с гравитацией скорость меняется сама
+    this.world.maxSpeed = 700;
+    this.world.restitution = 0.98;
     this.world.ballCollisions = true;
     this.maxBalls = 20;
     this.ringCount = RINGS;
@@ -35,6 +37,7 @@ export class SpiralGame extends Game {
   }
 
   build() {
+    this.world.gravity = GRAVITY;
     const n = this.ringCount;
     const step = (OUTER_R - INNER_R) / Math.max(1, n - 1);
     this.w = Math.max(1.2, Math.min(3, step * 0.62));
@@ -73,7 +76,7 @@ export class SpiralGame extends Game {
 
   addBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 160, vy: Math.sin(a) * 160, r: BALL_R, color: '#2EF0E0' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 120, vy: -80, r: BALL_R, color: '#2EF0E0' });
   }
 
   tap(x, y) {
@@ -130,6 +133,10 @@ export class SpiralGame extends Game {
         this.build();
         for (const b of this.world.balls) { b.x = (Math.random() - 0.5) * 6; b.y = (Math.random() - 0.5) * 6; }
       }
+    }
+    // Почти замер на дне — маленький подскок, чтобы игра не останавливалась
+    for (const b of this.world.balls) {
+      if (Math.hypot(b.vx, b.vy) < 40) { b.vy -= 140; b.vx += (Math.random() - 0.5) * 80; }
     }
     // Шарик улетел совсем далеко (за экран) — возвращаем в центр
     for (const b of this.world.balls) if (Math.hypot(b.x, b.y) > OUTER_R + 120) { b.x = 0; b.y = 0; }
