@@ -48,7 +48,7 @@ export function initPlay() {
   const renderMute = () => {
     mute.setAttribute('aria-pressed', String(audio.muted));
     mute.setAttribute('aria-label', audio.muted ? 'Включить звук касаний' : 'Выключить звук касаний');
-    $('#game-mute-icon').setAttribute('href', `assets/img/icons/sprite.svg#${audio.muted ? 'i-sound-off' : 'i-sound'}`);
+    $('#game-mute-icon').setAttribute('href', `assets/img/icons/sprite.svg?v=8f4948d8#${audio.muted ? 'i-sound-off' : 'i-sound'}`);
   };
   audio.muted = store.data.muted;
   renderMute();
@@ -149,6 +149,7 @@ export function enterPlay(id) {
   const found = findGame(id);
   if (!found) { go('games'); return; }
   lastScore = -1;
+  store.set('lastGame', id); // экран «Трек» предложит эту игру
   const game = found.create();
   runner.setGame(game);
   setupPaletteFor(game);

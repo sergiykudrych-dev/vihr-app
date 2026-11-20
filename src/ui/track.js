@@ -1,6 +1,7 @@
 // Экран «Мой трек»: загрузка музыки, плеер, настройки реакции игры.
 
-import { $, el, bindSlider, fmtTime, toast } from './dom.js';
+import { $, el, bindSlider, fmtTime, toast, pressGroup } from './dom.js';
+import { GAMES } from '../games/registry.js';
 import { track } from '../audio/track.js';
 import { store } from '../core/store.js';
 import { audio } from '../audio/engine.js';
@@ -49,7 +50,7 @@ function renderPlayer() {
   $('#track-name').textContent = track.name;
   const ext = track.name.split('.').pop().toUpperCase();
   $('#track-meta').textContent = `${fmtTime(track.duration || track.el.duration)} · ${ext}`;
-  $('#track-toggle-icon').setAttribute('href', `assets/img/icons/sprite.svg#${track.playing ? 'i-pause' : 'i-play'}`);
+  $('#track-toggle-icon').setAttribute('href', `assets/img/icons/sprite.svg?v=8f4948d8#${track.playing ? 'i-pause' : 'i-play'}`);
   $('#track-toggle').setAttribute('aria-label', track.playing ? 'Пауза' : 'Слушать трек');
   drawWave();
 }
@@ -116,6 +117,17 @@ export function initTrack() {
   setInterval(() => { if (track.playing && $('[data-screen="track"]').classList.contains('is-active')) drawWave(); }, 200);
 }
 
+/** Выбор игры, в которую пойти с этим треком (по умолчанию — последняя сыгранная). */
+function renderGamePicker() {
+  const mine = store.data.customGames.map((g) => ['custom-' + g.id, g.name]);
+  const items = [...GAMES.map((g) => [g.id, g.title]), ...mine];
+  let picked = items.some(([id]) => id === store.data.lastGame) ? store.data.lastGame : 'vortex';
+  const btn = $('#track-play-game');
+  btn.href = `#play-${picked}`;
+  pressGroup($('#track-games'), items, picked, (id) => { picked = id; btn.href = `#play-${id}`; }, 'chip');
+}
+
 export function enterTrack() {
   renderPlayer();
+  renderGamePicker();
 }

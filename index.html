@@ -9,11 +9,47 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="assets/fonts/inter/inter-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/fonts.css">
-  <link rel="stylesheet" href="assets/css/tokens.css">
-  <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/screens.css">
+  <!-- Версии файлов проставляет tools/stamp.py — не редактируй блок вручную -->
+  <!-- importmap:start -->
+<script type="importmap">
+{
+  "imports": {
+    "./src/audio/engine.js": "./src/audio/engine.js?v=10f3098b",
+    "./src/audio/packs.js": "./src/audio/packs.js?v=0588e482",
+    "./src/audio/scales.js": "./src/audio/scales.js?v=fc01a98c",
+    "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
+    "./src/core/recorder.js": "./src/core/recorder.js?v=806119f0",
+    "./src/core/router.js": "./src/core/router.js?v=bc4b91cb",
+    "./src/core/runner.js": "./src/core/runner.js?v=e0a6af0d",
+    "./src/core/store.js": "./src/core/store.js?v=e1542a88",
+    "./src/games/base.js": "./src/games/base.js?v=7463a103",
+    "./src/games/custom.js": "./src/games/custom.js?v=c7163414",
+    "./src/games/hexagon.js": "./src/games/hexagon.js?v=7e7bc42b",
+    "./src/games/laser.js": "./src/games/laser.js?v=771129eb",
+    "./src/games/plinko.js": "./src/games/plinko.js?v=e18e0a86",
+    "./src/games/rays.js": "./src/games/rays.js?v=4721d6ba",
+    "./src/games/registry.js": "./src/games/registry.js?v=74f580bd",
+    "./src/games/tunnel.js": "./src/games/tunnel.js?v=86482914",
+    "./src/games/vortex.js": "./src/games/vortex.js?v=ce6e4092",
+    "./src/main.js": "./src/main.js?v=55a023f3",
+    "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
+    "./src/render/fx.js": "./src/render/fx.js?v=062f4b4e",
+    "./src/render/palettes.js": "./src/render/palettes.js?v=4d4b1595",
+    "./src/ui/builder.js": "./src/ui/builder.js?v=f5b8dce4",
+    "./src/ui/dom.js": "./src/ui/dom.js?v=13b8a61d",
+    "./src/ui/games.js": "./src/ui/games.js?v=b449bff7",
+    "./src/ui/play.js": "./src/ui/play.js?v=a40e3376",
+    "./src/ui/sounds.js": "./src/ui/sounds.js?v=66966e92",
+    "./src/ui/track.js": "./src/ui/track.js?v=bcec377d"
+  }
+}
+</script>
+<!-- importmap:end -->
+  <link rel="stylesheet" href="assets/css/fonts.css?v=d77e4cc7">
+  <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
+  <link rel="stylesheet" href="assets/css/base.css?v=a2d3c3b0">
+  <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
+  <link rel="stylesheet" href="assets/css/screens.css?v=d9202d75">
 </head>
 <body>
 <div class="app" id="app">
@@ -43,14 +79,14 @@
     <canvas class="game-canvas" id="game-canvas" aria-label="Игровое поле"></canvas>
     <div class="game-ui">
       <a class="icon-btn icon-btn--glass game-back" href="#games" aria-label="Назад к играм">
-        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-back"></use></svg>
+        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-back"></use></svg>
       </a>
       <div class="game-score" id="game-score" aria-live="off">0</div>
       <button class="icon-btn icon-btn--glass game-palette" id="game-palette" aria-label="Цвета колец" aria-expanded="false" aria-controls="palette-sheet" hidden>
-        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-palette"></use></svg>
+        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-palette"></use></svg>
       </button>
       <button class="icon-btn icon-btn--glass game-mute" id="game-mute" aria-pressed="false" aria-label="Выключить звук касаний">
-        <svg class="icon" aria-hidden="true"><use id="game-mute-icon" href="assets/img/icons/sprite.svg#i-sound"></use></svg>
+        <svg class="icon" aria-hidden="true"><use id="game-mute-icon" href="assets/img/icons/sprite.svg?v=8f4948d8#i-sound"></use></svg>
       </button>
       <p class="game-hint" id="game-hint"></p>
       <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
@@ -110,7 +146,7 @@
     </header>
 
     <label class="upload">
-      <span class="upload__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-upload"></use></svg></span>
+      <span class="upload__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-upload"></use></svg></span>
       <span>
         <span class="upload__title" id="upload-title">Загрузить трек</span><br>
         <span class="muted small">MP3, WAV или M4A из файлов телефона</span>
@@ -122,14 +158,14 @@
     <div class="card player" id="player" hidden>
       <div class="player__top">
         <button class="icon-btn icon-btn--accent" id="track-toggle" aria-label="Слушать трек">
-          <svg class="icon icon--sm" aria-hidden="true"><use id="track-toggle-icon" href="assets/img/icons/sprite.svg#i-play"></use></svg>
+          <svg class="icon icon--sm" aria-hidden="true"><use id="track-toggle-icon" href="assets/img/icons/sprite.svg?v=8f4948d8#i-play"></use></svg>
         </button>
         <div style="flex: 1; min-width: 0">
           <div class="player__name" id="track-name"></div>
           <div class="muted small" id="track-meta"></div>
         </div>
         <button class="icon-btn icon-btn--glass" id="track-remove" aria-label="Убрать трек">
-          <svg class="icon icon--sm" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-trash"></use></svg>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-trash"></use></svg>
         </button>
       </div>
       <canvas class="wave" id="track-wave" aria-hidden="true"></canvas>
@@ -154,6 +190,11 @@
       <label class="muted" for="hits-mix" style="min-width: 118px">Касания под музыку</label>
       <input id="hits-mix" type="range" min="0" max="100" step="5">
       <output for="hits-mix" id="hits-mix-out"></output>
+    </div>
+
+    <div class="field">
+      <span class="label" id="track-game-label">Игра под трек</span>
+      <div class="chips chips--wrap" id="track-games" role="group" aria-labelledby="track-game-label"></div>
     </div>
 
     <a class="btn btn--primary btn--block" id="track-play-game" href="#play-vortex">Играть под этот трек</a>
@@ -215,15 +256,15 @@
   </section>
 
   <nav class="tabbar" aria-label="Разделы">
-    <a href="#games" data-tab="games"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-grid"></use></svg>Игры</a>
-    <a href="#sounds" data-tab="sounds"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-sound"></use></svg>Звуки</a>
-    <a href="#builder" data-tab="builder"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-plus-circle"></use></svg>Создать</a>
-    <a href="#track" data-tab="track"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-music"></use></svg>Трек</a>
+    <a href="#games" data-tab="games"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-grid"></use></svg>Игры</a>
+    <a href="#sounds" data-tab="sounds"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-sound"></use></svg>Звуки</a>
+    <a href="#builder" data-tab="builder"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-plus-circle"></use></svg>Создать</a>
+    <a href="#track" data-tab="track"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-music"></use></svg>Трек</a>
   </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script type="module" src="src/main.js"></script>
+<script type="module" src="src/main.js?v=55a023f3"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ const defaults = {
   trackVolume: 0.9,
   hitsWithMusic: 0.5,
   muted: false,
+  lastGame: 'vortex',
   palette: 'rainbow',
   paletteFrom: '#22E4F5',
   paletteTo: '#FF4FD8',

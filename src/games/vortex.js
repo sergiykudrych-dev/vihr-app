@@ -10,6 +10,7 @@ const RINGS = 22;           // круг чуть шире экрана, свер
 const INNER_R = 44;         // радиус первого кольца
 const STEP = 18;            // расстояние между кольцами
 const COLOR_SPAN = 22;      // палитра от центра до последнего кольца
+const SHRINK = STEP * 0.7;  // на сколько сужаются оставшиеся кольца, когда одно разбили
 
 export class VortexGame extends Game {
   setup() {
@@ -31,7 +32,7 @@ export class VortexGame extends Game {
       // Разрыв примерно одной длины на всех кольцах (на внешних — меньший угол)
       const gap = Math.max(0.28, 34 / R);
       const arc = {
-        cx: 0, cy: 0, R, w: 4.5,
+        cx: 0, cy: 0, R, baseR: R, w: 4.5,
         start: 0, len: TAU - gap,
         // Разрывы выстроены спиралью — как в залипательных роликах
         rot: i * 0.42,
@@ -44,6 +45,8 @@ export class VortexGame extends Game {
       this.rings.push(arc);
       this.world.arcs.push(arc);
     }
+    this.shrink = 0;      // на сколько должны сузиться кольца
+    this.shrinkAnim = 0;  // плавная версия — кольца сжимаются постепенно
     this.applyPalette();
     this.addCenterBall();
     this.cleared = 0;
@@ -90,8 +93,11 @@ export class VortexGame extends Game {
   }
 
   tick(dt) {
+    // Плавное сужение после разбитого кольца
+    this.shrinkAnim += (this.shrink - this.shrinkAnim) * Math.min(1, dt * 3);
     for (const r of this.rings) {
       if (r.broken) continue;
+      r.R = r.baseR - this.shrinkAnim;
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
     }
@@ -143,6 +149,7 @@ export class VortexGame extends Game {
 
   breakRing(r) {
     r.broken = true;
+    this.shrink += SHRINK; // все оставшиеся кольца чуть сужаются
     const i = this.world.arcs.indexOf(r);
     if (i >= 0) this.world.arcs.splice(i, 1);
     this.score += 10;

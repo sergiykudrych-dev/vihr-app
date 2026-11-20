@@ -22,7 +22,7 @@ export function icon(id, cls = 'icon') {
   svg.setAttribute('class', cls);
   svg.setAttribute('aria-hidden', 'true');
   const use = document.createElementNS(SVG_NS, 'use');
-  use.setAttribute('href', `assets/img/icons/sprite.svg#${id}`);
+  use.setAttribute('href', `assets/img/icons/sprite.svg?v=8f4948d8#${id}`);
   svg.append(use);
   return svg;
 }

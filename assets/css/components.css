@@ -33,6 +33,7 @@
 /* Чипы и сегменты */
 .chips { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; flex: none; }
 .chips::-webkit-scrollbar { display: none; }
+.chips--wrap { flex-wrap: wrap; overflow: visible; }
 .chip {
   flex: none; min-height: var(--tap); padding: 0 18px; border-radius: var(--r-pill);
   border: 1px solid var(--c-border-strong); background: transparent; color: var(--c-text);
