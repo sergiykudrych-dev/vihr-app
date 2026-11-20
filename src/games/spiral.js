@@ -23,11 +23,11 @@ export class SpiralGame extends Game {
   setup() {
     this.padding = 1.04;
     this.world.gravity = GRAVITY;
-    this.world.minSpeed = 0;     // с гравитацией скорость меняется сама
-    this.world.maxSpeed = 300;
+    this.world.minSpeed = 190;   // шарик всё время бодро движется
+    this.world.maxSpeed = 520;
     this.world.restitution = 0.8; // отскок мягче — шарик оседает на дно кольца
     this.world.ballCollisions = true;
-    this.maxBalls = 20;
+    this.maxBalls = 1;   // всегда ровно один шарик
     this.ringCount = RINGS;
     this.defaultPalette = 'amber';
     this.dust = [];        // рассыпающиеся кольца
@@ -77,7 +77,7 @@ export class SpiralGame extends Game {
 
   addBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 70, vy: -50, r: BALL_R, color: '#2EF0E0' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 180, vy: -120, r: BALL_R, color: '#2EF0E0' });
   }
 
   tap(x, y) {
@@ -88,7 +88,7 @@ export class SpiralGame extends Game {
 
   onBallWall(b, ring, impact) {
     // Трение о стенку: шарик не катается по кругу, а оседает вниз
-    b.vx *= 0.86; b.vy *= 0.86;
+    b.vx *= 0.93; b.vy *= 0.93;
     if (impact < 25) return;
     ring.glow = 1;
     this.sound(ring.k, impact, { pack: 'glass' });
