@@ -44,6 +44,8 @@ export class SpiralGame extends Game {
     this.world.gravity = GRAVITY;
     const n = this.ringCount;
     const step = (OUTER_R - INNER_R) / Math.max(1, n - 1);
+    this.step = step;
+    this.nextK = n;   // номер следующего кольца, которое появится снаружи
     this.w = Math.max(1.2, Math.min(3, step * 0.62));
     this.rings = [];
     for (let k = 0; k < n; k++) {
@@ -63,7 +65,32 @@ export class SpiralGame extends Game {
 
   recolor() {
     const cols = paletteColors(this.palette || this.defaultPalette, this.ringCount, this.paletteCustom);
-    for (const r of this.rings) r.color = cols[r.k];
+    this._cols = cols;
+    for (const r of this.rings) r.color = this.colorOf(r.k);
+  }
+
+  /** Цвет кольца номер k: палитра идёт туда и обратно, чтобы новые кольца снаружи не обрывали градиент. */
+  colorOf(k) {
+    const n = this._cols.length, period = Math.max(1, (n - 1) * 2);
+    const i = k % period;
+    return this._cols[i < n ? i : period - i];
+  }
+
+  /** Кольца сжимаются — снаружи добавляется новое, чтобы поле не пустело. */
+  growRings() {
+    for (let guard = 0; guard < 6; guard++) {
+      const last = this.rings[this.rings.length - 1];
+      if (!last || last.R + this.step > OUTER_R) return;
+      const k = this.nextK++;
+      const R = last.R + this.step;
+      const ring = {
+        cx: 0, cy: 0, R, w: this.w,
+        start: 0, len: TAU - GAP, rot: last.rot + TWIST,
+        spin: 0, data: { note: k % this.ringCount }, k, color: this.colorOf(k), glow: 0, alpha: 0, delay: 0,
+      };
+      this.rings.push(ring);
+      this.world.arcs.push(ring);
+    }
   }
 
   setPalette(key, custom) { this.palette = key; this.paletteCustom = custom; this.recolor(); }
@@ -146,6 +173,9 @@ export class SpiralGame extends Game {
       r.broken = true;
       this.dust.push({ R: Math.max(r.R, 4), rot: r.rot, len: r.len, color: r.color, age: 0, life: 0.8 });
     }
+
+    this.rings = this.rings.filter((r) => !r.broken);
+    this.growRings();
 
     // Шарик вышел за внутреннее целое кольцо — кольцо разбивается
     for (const b of this.world.balls) {

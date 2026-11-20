@@ -8,10 +8,10 @@ import { neonStroke } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 22;        // сколько колец по умолчанию (круг чуть шире экрана)
+const RINGS = 16;        // сколько колец по умолчанию (круг чуть шире экрана)
 const RINGS_MIN = 3;
 const RINGS_MAX = 100;
-const STEP = 18;         // расстояние между кольцами
+const STEP = 27;         // расстояние между кольцами
 const MIN_R = 9;         // до такого радиуса сжимается внутреннее кольцо (≈ размер шарика), потом исчезает
 const DRIFT = 0.14;      // скорость «воронки»: колец в секунду, уходящих в центр сами по себе
 const BALL_R = 7.5;
