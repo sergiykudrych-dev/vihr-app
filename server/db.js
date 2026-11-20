@@ -27,6 +27,10 @@ export async function migrate() {
     );
     CREATE INDEX IF NOT EXISTS events_created_idx ON events (created_at);
     CREATE INDEX IF NOT EXISTS events_type_idx ON events (type, created_at);
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS games (
       id TEXT PRIMARY KEY,
       enabled BOOLEAN NOT NULL DEFAULT true
@@ -58,6 +62,35 @@ export async function setGameEnabled(id, enabled) {
      ON CONFLICT (id) DO UPDATE SET enabled = $2`, [id, enabled]);
 }
 
+// Настройки рекламы. Значения по умолчанию — щадящие: реклама не раньше 2 минут,
+// не чаще раза в 3 игры и не чаще раза в 3 минуты.
+export const AD_DEFAULTS = { enabled: true, every: 3, gapSec: 180, firstSec: 120 };
+const AD_LIMITS = { every: [1, 50], gapSec: [0, 3600], firstSec: [0, 3600] };
+
+export async function adSettings() {
+  const r = await pool.query("SELECT value FROM settings WHERE key = 'ads'");
+  return { ...AD_DEFAULTS, ...(r.rows[0]?.value || {}) };
+}
+
+/** Проверить и сохранить настройки рекламы. Вернуть сохранённое или null при ошибке. */
+export async function setAdSettings(input) {
+  const next = await adSettings();
+  if ('enabled' in input) {
+    if (typeof input.enabled !== 'boolean') return null;
+    next.enabled = input.enabled;
+  }
+  for (const [k, [min, max]] of Object.entries(AD_LIMITS)) {
+    if (!(k in input)) continue;
+    const v = input[k];
+    if (!Number.isInteger(v) || v < min || v > max) return null;
+    next[k] = v;
+  }
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('ads', $1)
+     ON CONFLICT (key) DO UPDATE SET value = $1`, [JSON.stringify(next)]);
+  return next;
+}
+
 export async function stats() {
   const one = async (sql) => (await pool.query(sql)).rows;
   const [[tot], [act], topGames, days, [avg], [rec]] = await Promise.all([
@@ -78,7 +111,10 @@ export async function stats() {
          ORDER BY d`),
     one(`SELECT coalesce(round(avg(ms) / 1000.0), 0)::int AS avg_sec
          FROM events WHERE type = 'play_end' AND ms > 0 AND created_at >= now() - interval '7 days'`),
-    one(`SELECT count(*)::int AS videos FROM events WHERE type = 'record' AND created_at >= now() - interval '7 days'`),
+    one(`SELECT count(*) FILTER (WHERE type = 'record')::int AS videos,
+                count(*) FILTER (WHERE type = 'ad_view')::int AS ads,
+                count(*) FILTER (WHERE type = 'ad_view' AND created_at >= date_trunc('day', now()))::int AS ads_today
+         FROM events WHERE created_at >= now() - interval '7 days'`),
   ]);
-  return { ...tot, ...act, avg_sec: avg.avg_sec, videos_7d: rec.videos, top_games: topGames, days };
+  return { ...tot, ...act, avg_sec: avg.avg_sec, videos_7d: rec.videos, ads_7d: rec.ads, ads_today: rec.ads_today, top_games: topGames, days };
 }

@@ -7,6 +7,7 @@
   <meta name="description" content="Spinly — satisfying neon physics games that sound on every hit and react to your music.">
   <title>Spinly</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://sad.adsgram.ai/js/sad.min.js" defer></script>
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="assets/fonts/inter/inter-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -19,8 +20,9 @@
     "./src/audio/packs.js": "./src/audio/packs.js?v=c2242361",
     "./src/audio/scales.js": "./src/audio/scales.js?v=5a4a8ca1",
     "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
-    "./src/config.js": "./src/config.js?v=e66f5c12",
-    "./src/core/api.js": "./src/core/api.js?v=cd4ebb4f",
+    "./src/config.js": "./src/config.js?v=d3b8ee49",
+    "./src/core/ads.js": "./src/core/ads.js?v=82552d3b",
+    "./src/core/api.js": "./src/core/api.js?v=9d945400",
     "./src/core/nozoom.js": "./src/core/nozoom.js?v=b5037add",
     "./src/core/recorder.js": "./src/core/recorder.js?v=806119f0",
     "./src/core/router.js": "./src/core/router.js?v=bc4b91cb",
@@ -36,17 +38,17 @@
     "./src/games/registry.js": "./src/games/registry.js?v=e0cdab4e",
     "./src/games/tunnel.js": "./src/games/tunnel.js?v=576af03c",
     "./src/games/vortex.js": "./src/games/vortex.js?v=ea0ad6a6",
-    "./src/i18n/en.js": "./src/i18n/en.js?v=3e2242da",
+    "./src/i18n/en.js": "./src/i18n/en.js?v=55a7dcb4",
     "./src/i18n/index.js": "./src/i18n/index.js?v=72ac6741",
     "./src/main.js": "./src/main.js?v=e57a0a97",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
     "./src/render/fx.js": "./src/render/fx.js?v=f3d3d22f",
     "./src/render/palettes.js": "./src/render/palettes.js?v=09ae0eab",
-    "./src/ui/admin.js": "./src/ui/admin.js?v=4b85b00d",
+    "./src/ui/admin.js": "./src/ui/admin.js?v=75457ff1",
     "./src/ui/builder.js": "./src/ui/builder.js?v=19e1faab",
     "./src/ui/dom.js": "./src/ui/dom.js?v=13b8a61d",
     "./src/ui/games.js": "./src/ui/games.js?v=1dc9f9d9",
-    "./src/ui/play.js": "./src/ui/play.js?v=4e96c899",
+    "./src/ui/play.js": "./src/ui/play.js?v=784c73d4",
     "./src/ui/sounds.js": "./src/ui/sounds.js?v=9beef739",
     "./src/ui/track.js": "./src/ui/track.js?v=85ff10dd"
   }
@@ -57,7 +59,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
   <link rel="stylesheet" href="assets/css/base.css?v=ad2c2a5d">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
-  <link rel="stylesheet" href="assets/css/screens.css?v=0326742c">
+  <link rel="stylesheet" href="assets/css/screens.css?v=6c3dd0f0">
 </head>
 <body>
 <div class="app" id="app">

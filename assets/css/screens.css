@@ -211,3 +211,12 @@
 /* Кнопки в шапке экрана «Игры»: админка и язык */
 .head-actions { display: flex; align-items: center; gap: var(--sp-2); }
 .lang-btn { min-width: 52px; padding-left: var(--sp-3); padding-right: var(--sp-3); font-weight: 600; letter-spacing: .04em; }
+
+/* Админка: настройки рекламы */
+.ad-field { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 56px; border-top: 1px solid var(--c-border); }
+.ad-field__label { font-size: var(--fs-md); flex: 1; }
+.ad-field__box { display: flex; align-items: center; gap: var(--sp-2); }
+.ad-field__input { width: 64px; min-height: 40px; text-align: center; font-size: 16px; border-radius: var(--r-md); background: var(--c-surface-2); border: 1px solid var(--c-border-strong); color: var(--c-text); }
+.ad-actions { display: flex; gap: var(--sp-3); }
+.ad-actions .btn { flex: 1; }
+.ad-field__box > .muted { min-width: 42px; }

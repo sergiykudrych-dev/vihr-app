@@ -9,7 +9,7 @@
 
 import http from 'node:http';
 import { verifyInitData } from './auth.js';
-import { migrate, upsertPlayer, addEvent, disabledGames, setGameEnabled, stats } from './db.js';
+import { migrate, upsertPlayer, addEvent, disabledGames, setGameEnabled, stats, adSettings, setAdSettings } from './db.js';
 import { startBot } from './bot.js';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
@@ -62,7 +62,7 @@ export function createServer() {
 
       // Публично: какие игры выключены (чтобы скрыть их и в обычном браузере)
       if (req.method === 'GET' && url.pathname === '/api/config') {
-        return send(res, 200, { disabled: await disabledGames() });
+        return send(res, 200, { disabled: await disabledGames(), ads: await adSettings() });
       }
       if (req.method !== 'POST') return send(res, 404, { error: 'not_found' });
 
@@ -74,7 +74,7 @@ export function createServer() {
       if (url.pathname === '/api/hello') {
         await upsertPlayer(user);
         await addEvent(user.id, 'open', null, null);
-        return send(res, 200, { isAdmin, disabled: await disabledGames() });
+        return send(res, 200, { isAdmin, disabled: await disabledGames(), ads: await adSettings() });
       }
 
       if (url.pathname === '/api/event') {
@@ -90,7 +90,7 @@ export function createServer() {
       if (!isAdmin) return send(res, 403, { error: 'forbidden' });
 
       if (url.pathname === '/api/admin/stats') {
-        return send(res, 200, { ...(await stats()), disabled: await disabledGames() });
+        return send(res, 200, { ...(await stats()), disabled: await disabledGames(), ads: await adSettings() });
       }
       if (url.pathname === '/api/admin/game') {
         if (typeof body.id !== 'string' || !GAME_ID.test(body.id) || typeof body.enabled !== 'boolean') {
@@ -98,6 +98,11 @@ export function createServer() {
         }
         await setGameEnabled(body.id, body.enabled);
         return send(res, 200, { disabled: await disabledGames() });
+      }
+      if (url.pathname === '/api/admin/ads') {
+        const ads = await setAdSettings(body.ads || {});
+        if (!ads) return send(res, 400, { error: 'bad_request' });
+        return send(res, 200, { ads });
       }
       return send(res, 404, { error: 'not_found' });
     } catch (e) {

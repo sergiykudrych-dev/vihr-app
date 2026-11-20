@@ -13,10 +13,13 @@ function readCache() {
 
 let disabled = readCache();
 let admin = false;
+let ads = { enabled: false, every: 3, gapSec: 180, firstSec: 120 };
 
 export const api = {
   get enabled() { return !!API_URL; },
   get isAdmin() { return admin; },
+  /** Правила показа рекламы (с сервера). */
+  get ads() { return ads; },
   isDisabled: (id) => disabled.has(id),
   /** Подписаться на изменение списка выключенных игр или прав. */
   onChange(fn) { listeners.add(fn); },
@@ -37,6 +40,11 @@ export const api = {
   },
 
   adminStats: () => post('/api/admin/stats', {}),
+  async adminSetAds(next) {
+    const data = await post('/api/admin/ads', { ads: next });
+    apply(data);
+    return data.ads;
+  },
   async adminSetGame(id, enabled) {
     const data = await post('/api/admin/game', { id, enabled });
     apply(data);
@@ -55,6 +63,7 @@ function apply(data) {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(data.disabled)); } catch { /* ignore */ }
   }
   if (typeof data.isAdmin === 'boolean') admin = data.isAdmin;
+  if (data.ads && typeof data.ads === 'object') ads = { ...ads, ...data.ads };
   listeners.forEach((fn) => fn());
 }
 

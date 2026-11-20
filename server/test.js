@@ -18,7 +18,7 @@ let fails = 0;
 const ok = (name, cond) => { console.log(cond ? 'ok  ' : 'FAIL', name); if (!cond) fails++; };
 
 await migrate();
-await pool.query('TRUNCATE players, events, games');
+await pool.query('TRUNCATE players, events, games, settings');
 const srv = createServer().listen(0);
 const base = `http://localhost:${srv.address().port}`;
 const post = (path, body) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -63,6 +63,21 @@ r = await post('/api/admin/game', { initData: admin, id: 'tunnel', enabled: true
 ok('админ включает обратно', (await r.json()).disabled.length === 0);
 r = await post('/api/admin/game', { initData: admin, id: '../x', enabled: false });
 ok('плохой id → 400', r.status === 400);
+
+r = await fetch(base + '/api/config');
+ok('настройки рекламы по умолчанию', (await r.json()).ads.every === 3);
+r = await post('/api/admin/ads', { initData: player, ads: { every: 1 } });
+ok('игрок не меняет рекламу → 403', r.status === 403);
+r = await post('/api/admin/ads', { initData: admin, ads: { enabled: false, every: 5, gapSec: 60, firstSec: 0 } });
+j = await r.json();
+ok('админ меняет рекламу', j.ads.enabled === false && j.ads.every === 5 && j.ads.gapSec === 60);
+r = await post('/api/admin/ads', { initData: admin, ads: { every: 0 } });
+ok('плохая частота → 400', r.status === 400);
+r = await post('/api/hello', { initData: player });
+ok('игрок получает настройки рекламы', (await r.json()).ads.every === 5);
+await post('/api/event', { initData: player, type: 'ad_view', game: 'vortex' });
+r = await post('/api/admin/stats', { initData: admin });
+ok('показы рекламы в статистике', (await r.json()).ads_today === 1);
 
 let last;
 for (let i = 0; i < 125; i++) last = await post('/api/event', { initData: player, type: 'open' });

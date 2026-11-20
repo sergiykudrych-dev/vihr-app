@@ -9,6 +9,7 @@ import { track } from '../audio/track.js';
 import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
 import { api } from '../core/api.js';
+import { shouldShowAd, showAd } from '../core/ads.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 import { t } from '../i18n/index.js';
 
@@ -150,10 +151,16 @@ async function saveCurrentVideo() {
   toast(result === 'shared' ? t('Готово') : t('Видео скачано'));
 }
 
-export function enterPlay(id) {
+export async function enterPlay(id) {
   const found = findGame(id);
   if (!found) { go('games'); return; }
   if (api.isDisabled(id)) { toast(t('Игра временно недоступна')); go('games'); return; }
+  // Реклама перед стартом (если подошло по правилам частоты из админки)
+  if (shouldShowAd()) {
+    await showAd(id);
+    // Пока шла реклама, игрок мог уйти с экрана
+    if (location.hash !== '#play-' + id) return;
+  }
   api.event('play_start', id);
   playStart = performance.now();
   lastScore = -1;

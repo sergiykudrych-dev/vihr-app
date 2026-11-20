@@ -188,6 +188,21 @@ export const EN = {
   'Сервер не отвечает.': 'The server is not responding.',
   'Повторить': 'Retry',
 
+  // Реклама
+  'Реклама': 'Ads',
+  'Реклама перед игрой': 'Ad before a game',
+  'Не чаще чем раз в': 'At most once every',
+  'И не чаще чем раз в': 'And at most once every',
+  'Первая реклама не раньше чем через': 'First ad no sooner than',
+  'игр': 'games',
+  'мин': 'min',
+  'Сохранено': 'Saved',
+  'Показать пример': 'Show example',
+  'Реклама сейчас недоступна. Площадка может быть ещё на модерации': 'No ad available right now. The platform may still be under review',
+  'Админу реклама не показывается. Чтобы посмотреть, как она выглядит, нажми «Показать пример».': 'The admin never sees ads. To see what they look like, tap “Show example”.',
+  'показов рекламы сегодня': 'ad views today',
+  'показов за 7 дней': 'ad views, 7 days',
+
   // Язык
   'Язык': 'Language',
 };
