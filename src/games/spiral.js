@@ -23,9 +23,9 @@ export class SpiralGame extends Game {
   setup() {
     this.padding = 1.04;
     this.world.gravity = GRAVITY;
-    this.world.minSpeed = 190;   // шарик всё время бодро движется
+    this.world.minSpeed = 0;     // шарик летит по траектории под действием притяжения вниз
     this.world.maxSpeed = 520;
-    this.world.restitution = 0.8; // отскок мягче — шарик оседает на дно кольца
+    this.world.restitution = 0.93; // отскок сильнее — шарик отбивается от линий
     this.world.ballCollisions = true;
     this.maxBalls = 1;   // всегда ровно один шарик
     this.ringCount = RINGS;
@@ -88,7 +88,7 @@ export class SpiralGame extends Game {
 
   onBallWall(b, ring, impact) {
     // Трение о стенку: шарик не катается по кругу, а оседает вниз
-    b.vx *= 0.93; b.vy *= 0.93;
+    b.vx *= 0.985; b.vy *= 0.985;
     if (impact < 25) return;
     ring.glow = 1;
     this.sound(ring.k, impact, { pack: 'glass' });
