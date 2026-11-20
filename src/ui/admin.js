@@ -35,7 +35,9 @@ function gameRow(g) {
     catch { sw.setAttribute('aria-checked', String(!next)); toast(t('Не получилось, попробуй ещё раз')); }
     busy = false;
   });
-  return el('div', { class: 'toggle-row' }, el('div', { class: 'toggle-row__body' }, el('div', { class: 'toggle-row__title' }, g.title)), sw);
+  return el('div', { class: 'toggle-row' },
+    el('img', { class: 'admin-game__icon', src: g.thumb, alt: '', loading: 'lazy' }),
+    el('div', { class: 'toggle-row__body' }, el('div', { class: 'toggle-row__title' }, g.title)), sw);
 }
 
 function numField(id, label, value, min, max, suffix) {

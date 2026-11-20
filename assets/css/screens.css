@@ -220,3 +220,5 @@
 .ad-actions { display: flex; gap: var(--sp-3); }
 .ad-actions .btn { flex: 1; }
 .ad-field__box > .muted { min-width: 42px; }
+/* Админка: маленькие иконки игр в списке */
+.admin-game__icon { width: 52px; height: 34px; flex: none; object-fit: contain; border-radius: 8px; background: var(--c-bg-game); border: 1px solid var(--c-border); padding: 2px; }
