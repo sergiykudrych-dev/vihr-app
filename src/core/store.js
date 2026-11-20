@@ -11,6 +11,7 @@ const defaults = {
   hitsWithMusic: 0.5,
   muted: false,
   lastGame: 'vortex',
+  ringCounts: {},      // сколько колец в каждой игре: { vortex: 22, tunnel: 900 }
   palette: 'rainbow',
   paletteFrom: '#22E4F5',
   paletteTo: '#FF4FD8',

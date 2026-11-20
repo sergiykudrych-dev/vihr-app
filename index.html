@@ -20,8 +20,8 @@
     "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
     "./src/core/recorder.js": "./src/core/recorder.js?v=806119f0",
     "./src/core/router.js": "./src/core/router.js?v=bc4b91cb",
-    "./src/core/runner.js": "./src/core/runner.js?v=e0a6af0d",
-    "./src/core/store.js": "./src/core/store.js?v=e1542a88",
+    "./src/core/runner.js": "./src/core/runner.js?v=8d39a776",
+    "./src/core/store.js": "./src/core/store.js?v=35fed095",
     "./src/games/base.js": "./src/games/base.js?v=7463a103",
     "./src/games/custom.js": "./src/games/custom.js?v=c7163414",
     "./src/games/hexagon.js": "./src/games/hexagon.js?v=7e7bc42b",
@@ -29,16 +29,16 @@
     "./src/games/plinko.js": "./src/games/plinko.js?v=e18e0a86",
     "./src/games/rays.js": "./src/games/rays.js?v=4721d6ba",
     "./src/games/registry.js": "./src/games/registry.js?v=74f580bd",
-    "./src/games/tunnel.js": "./src/games/tunnel.js?v=d4ee24dc",
-    "./src/games/vortex.js": "./src/games/vortex.js?v=2f92f9c6",
+    "./src/games/tunnel.js": "./src/games/tunnel.js?v=20d3eb2e",
+    "./src/games/vortex.js": "./src/games/vortex.js?v=92a9942a",
     "./src/main.js": "./src/main.js?v=55a023f3",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
-    "./src/render/fx.js": "./src/render/fx.js?v=062f4b4e",
+    "./src/render/fx.js": "./src/render/fx.js?v=f3d3d22f",
     "./src/render/palettes.js": "./src/render/palettes.js?v=4d4b1595",
     "./src/ui/builder.js": "./src/ui/builder.js?v=f5b8dce4",
     "./src/ui/dom.js": "./src/ui/dom.js?v=13b8a61d",
     "./src/ui/games.js": "./src/ui/games.js?v=b449bff7",
-    "./src/ui/play.js": "./src/ui/play.js?v=b4d8ab07",
+    "./src/ui/play.js": "./src/ui/play.js?v=e6b5d070",
     "./src/ui/sounds.js": "./src/ui/sounds.js?v=66966e92",
     "./src/ui/track.js": "./src/ui/track.js?v=bcec377d"
   }
@@ -49,7 +49,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
   <link rel="stylesheet" href="assets/css/base.css?v=a2d3c3b0">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
-  <link rel="stylesheet" href="assets/css/screens.css?v=d9202d75">
+  <link rel="stylesheet" href="assets/css/screens.css?v=0a370d00">
 </head>
 <body>
 <div class="app" id="app">
@@ -82,7 +82,7 @@
         <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-back"></use></svg>
       </a>
       <div class="game-score" id="game-score" aria-live="off">0</div>
-      <button class="icon-btn icon-btn--glass game-palette" id="game-palette" aria-label="Цвета колец" aria-expanded="false" aria-controls="palette-sheet" hidden>
+      <button class="icon-btn icon-btn--glass game-palette" id="game-palette" aria-label="Настройки колец" aria-expanded="false" aria-controls="palette-sheet" hidden>
         <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-palette"></use></svg>
       </button>
       <button class="icon-btn icon-btn--glass game-mute" id="game-mute" aria-pressed="false" aria-label="Выключить звук касаний">
@@ -93,12 +93,21 @@
       <span class="rec-time" id="rec-time" hidden>0:00</span>
       <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Записать видео"><span></span></button>
 
-      <!-- Цвета колец: панель снизу, игра видна и меняется сразу -->
+      <!-- Настройки колец: панель снизу, игра видна и меняется сразу -->
       <div class="palette-sheet" id="palette-sheet" role="dialog" aria-labelledby="palette-title" hidden>
         <div class="palette-sheet__head">
-          <h2 class="palette-sheet__title" id="palette-title">Цвета колец</h2>
+          <h2 class="palette-sheet__title" id="palette-title">Кольца</h2>
           <button class="btn btn--primary palette-sheet__done" id="palette-done" type="button">Готово</button>
         </div>
+        <div class="sheet-section" id="ring-count-section" hidden>
+          <span class="label" id="ring-count-label">Сколько колец</span>
+          <div class="ring-count">
+            <div class="chips" id="ring-presets" role="group" aria-labelledby="ring-count-label"></div>
+            <input class="ring-count__input" id="ring-count-input" type="number" inputmode="numeric" aria-label="Своё число колец">
+          </div>
+          <p class="small muted" id="ring-count-hint"></p>
+        </div>
+        <span class="label">Цвета</span>
         <div class="palette-grid" id="palette-grid" role="group" aria-label="Палитры"></div>
         <div class="palette-custom" id="palette-custom" hidden>
           <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="palette-from"></label>

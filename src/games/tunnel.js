@@ -10,7 +10,9 @@ import { PALETTES, mixStops } from '../render/palettes.js';
 import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
-const TOTAL = 900;        // сколько колец в начале
+const TOTAL = 900;        // сколько колец в начале (по умолчанию)
+const TOTAL_MIN = 50;
+const TOTAL_MAX = 5000;
 const CENTER_R = 135;     // радиус центрального кольца на экране
 const STEP = 6.2;         // расстояние между кольцами
 const GAP = 0.8;          // ширина разрыва (радианы) — одинаковая, поэтому «клин» расширяется к краю
@@ -43,6 +45,7 @@ export class TunnelGame extends Game {
   }
 
   reset() {
+    this.total = this.total || TOTAL;
     this.musicLevel = MUSIC_START;
     this.c = 0;              // индекс текущего (центрального) кольца
     this.cAnim = 0;          // плавная версия — для «затягивания»
@@ -85,6 +88,18 @@ export class TunnelGame extends Game {
     const start = this.ringRot(i);
     const rel = (((a - start) % TAU) + TAU) % TAU;
     return rel > margin && rel < this.ringGap(i) - margin;
+  }
+
+  ringOptions() {
+    return { presets: [300, 900, 2000], min: TOTAL_MIN, max: TOTAL_MAX, value: this.total };
+  }
+
+  /** Новое число колец — игра начинается заново с этим числом. */
+  setRingCount(n) {
+    const v = Math.max(TOTAL_MIN, Math.min(TOTAL_MAX, Math.round(n)));
+    if (v === this.total) return;
+    this.total = v;
+    this.reset();
   }
 
   setPalette(key, custom) {
@@ -143,7 +158,7 @@ export class TunnelGame extends Game {
     this.pulse = Math.max(0, this.pulse - dt * 2.5);
     audio.setTrackMix(this.musicLevel);
     this.fx.update(dt);
-    if (this.c >= TOTAL) {
+    if (this.c >= this.total) {
       this._resetIn = (this._resetIn ?? 2) - dt;
       if (this._resetIn <= 0) { this._resetIn = null; this.reset(); }
     }
@@ -157,7 +172,7 @@ export class TunnelGame extends Game {
     b.x += b.vx * h; b.y += b.vy * h;
 
     // Пока шарик у стенки текущего кольца: либо пролетает в разрыв, либо отскакивает
-    for (let guard = 0; guard < 40 && this.c < TOTAL; guard++) {
+    for (let guard = 0; guard < 40 && this.c < this.total; guard++) {
       const R = this.radius(this.c);
       const d = Math.hypot(b.x, b.y) || 0.0001;
       if (d + b.r < R - 1) return;
@@ -206,7 +221,7 @@ export class TunnelGame extends Game {
 
     // Кольца снаружи (только видимые на экране)
     const maxR = 820;
-    const last = Math.min(TOTAL - 1, this.c + Math.ceil((maxR - CENTER_R) / STEP) + 2);
+    const last = Math.min(this.total - 1, this.c + Math.ceil((maxR - CENTER_R) / STEP) + 2);
     ctx.lineWidth = 2.2;
     ctx.lineCap = 'butt';
     for (let i = last; i > this.c; i--) {
@@ -222,7 +237,7 @@ export class TunnelGame extends Game {
     // Центральное кольцо: яркое, с подсветкой внутри
     const R = this.radius(this.c);
     const main = shift(this.colorOf(this.c));
-    if (this.c < TOTAL) {
+    if (this.c < this.total) {
       ctx.fillStyle = withAlpha('#120E2E', 0.92);
       ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
       ctx.fillStyle = withAlpha(main.startsWith('#') ? main : '#8B6CFF', 0.10 + this.pulse * 0.08);
@@ -246,7 +261,7 @@ export class TunnelGame extends Game {
     ctx.font = '700 64px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(String(Math.max(0, TOTAL - this.c)), 0, 2);
+    ctx.fillText(String(Math.max(0, this.total - this.c)), 0, 2);
 
     this.fx.draw(ctx);
 

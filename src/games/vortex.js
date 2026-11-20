@@ -8,7 +8,9 @@ import { neonStroke } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 22;        // сколько колец одновременно (круг чуть шире экрана)
+const RINGS = 22;        // сколько колец по умолчанию (круг чуть шире экрана)
+const RINGS_MIN = 3;
+const RINGS_MAX = 100;
 const STEP = 18;         // расстояние между кольцами
 const MIN_R = 9;         // до такого радиуса сжимается внутреннее кольцо (≈ размер шарика), потом исчезает
 const DRIFT = 0.3;       // скорость «воронки»: колец в секунду, уходящих в центр сами по себе
@@ -30,7 +32,8 @@ export class VortexGame extends Game {
     this.phase = 0;    // 0..1 — насколько внутреннее кольцо уже «уплыло» к центру
     this.rings = [];
     this.world.arcs = this.rings; // физика видит те же кольца
-    for (let k = 0; k < RINGS; k++) {
+    this.ringCount = RINGS;
+    for (let k = 0; k < this.ringCount; k++) {
       const r = this.makeRing();
       r.R = this.targetR(k);
       r.alpha = 1;
@@ -57,6 +60,21 @@ export class VortexGame extends Game {
     };
     this.rings.push(ring);
     return ring;
+  }
+
+  // ===== Количество колец =====
+
+  /** Что показать в настройках: готовые варианты и границы для ручного ввода. */
+  ringOptions() {
+    return { presets: [10, 22, 40, 60], min: RINGS_MIN, max: RINGS_MAX, value: this.ringCount };
+  }
+
+  /** Сменить число колец на лету: лишние внешние гаснут, недостающие проявляются снаружи. */
+  setRingCount(n) {
+    n = Math.max(RINGS_MIN, Math.min(RINGS_MAX, Math.round(n)));
+    this.ringCount = n;
+    while (this.rings.length > n) this.rings.pop();
+    while (this.rings.length < n) this.addOuter();
   }
 
   // ===== Цвета =====
@@ -118,7 +136,7 @@ export class VortexGame extends Game {
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
       r.alpha = Math.min(1, r.alpha + dt / FADE_IN);
-      r.data.note = RINGS - k;
+      r.data.note = this.ringCount - k;
     });
 
     // Кольцо разбито, как только центр шарика оказался снаружи кольца
@@ -196,13 +214,17 @@ export class VortexGame extends Game {
   }
 
   drawWalls(ctx) {
+    const viewR = (this.viewR || 2000) + 10;
+    const visible = this.rings.filter((r) => r.R <= viewR).length;
+    const lite = visible > 26; // много колец на экране — облегчённое свечение, чтобы не тормозило
     this.rings.forEach((r, k) => {
+      if (r.R > viewR) return; // за краем экрана — не рисуем
       const color = this.react.color ? `hsl(${(this.hueShift + k * 28) % 360},92%,60%)` : r.color;
       ctx.globalAlpha = r.alpha;
       neonStroke(ctx, color, r.w * (1 + r.pulse * 0.12), () => {
         ctx.beginPath();
         ctx.arc(0, 0, r.R, r.rot, r.rot + r.len);
-      }, 0.7 + r.pulse * 0.45);
+      }, 0.7 + r.pulse * 0.45, lite);
     });
     ctx.globalAlpha = 1;
   }

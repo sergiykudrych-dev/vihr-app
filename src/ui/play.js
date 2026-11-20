@@ -14,6 +14,7 @@ let runner = null;
 let recorder = null;
 let recTimer = 0;
 let lastScore = -1;
+let currentId = null;
 
 export function findGame(id) {
   const g = GAMES.find((x) => x.id === id);
@@ -153,7 +154,9 @@ export function enterPlay(id) {
   audio.setTrackMix(1);
   const game = found.create();
   runner.setGame(game);
+  currentId = id;
   setupPaletteFor(game);
+  setupRingCount(game);
   // Некоторые игры рисуют счёт сами (например, «Туннель» — число в центре)
   $('#game-score').hidden = !!game.hideScore;
   runner.resize();
@@ -221,10 +224,58 @@ function initPalette() {
     if ($('#palette-sheet').hidden) openPalette(); else closePalette();
   });
   $('#palette-done').addEventListener('click', closePalette);
+
+  // Своё число колец: применяем по Enter или когда поле теряет фокус
+  const input = $('#ring-count-input');
+  const applyInput = () => {
+    const n = parseInt(input.value, 10);
+    if (Number.isFinite(n)) setRingCount(n);
+    else renderRingCount();
+  };
+  input.addEventListener('change', applyInput);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { input.blur(); } });
+}
+
+// ===== Количество колец =====
+
+function setRingCount(n) {
+  const g = runner.game;
+  if (!g || !g.setRingCount) return;
+  g.setRingCount(n);
+  const value = g.ringOptions().value; // игра сама ограничит число допустимыми границами
+  store.data.ringCounts = { ...store.data.ringCounts, [currentId]: value };
+  store.save();
+  renderRingCount();
+}
+
+function renderRingCount() {
+  const g = runner.game;
+  if (!g || !g.ringOptions) return;
+  const o = g.ringOptions();
+  $('#ring-presets').replaceChildren(...o.presets.map((n) => el('button', {
+    class: 'chip', type: 'button', 'aria-pressed': String(n === o.value),
+    onclick: () => setRingCount(n),
+  }, String(n))));
+  const input = $('#ring-count-input');
+  input.min = o.min;
+  input.max = o.max;
+  input.value = o.value;
+  $('#ring-count-hint').textContent = `Своё число — от ${o.min} до ${o.max}`;
+}
+
+/** Блок «Сколько колец» есть только у игр, которые это умеют (Вихрь, Туннель). */
+function setupRingCount(game) {
+  const supported = typeof game.setRingCount === 'function';
+  $('#ring-count-section').hidden = !supported;
+  if (!supported) return;
+  const saved = store.data.ringCounts[currentId];
+  if (saved) game.setRingCount(saved);
+  renderRingCount();
 }
 
 function openPalette() {
   renderSwatches();
+  renderRingCount();
   $('#palette-sheet').hidden = false;
   $('#game-hint').classList.add('is-hidden');
   $('#game-palette').setAttribute('aria-expanded', 'true');

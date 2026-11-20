@@ -41,12 +41,15 @@ export function drawBall(ctx, b, extraGlow = 0) {
 }
 
 /** Неоновая линия: широкий полупрозрачный слой + тонкая яркая сердцевина. */
-export function neonStroke(ctx, color, width, drawPath, intensity = 1) {
+export function neonStroke(ctx, color, width, drawPath, intensity = 1, lite = false) {
   ctx.lineCap = 'round';
   ctx.globalCompositeOperation = 'lighter';
-  ctx.strokeStyle = withAlpha(color, 0.18 * intensity);
-  ctx.lineWidth = width * 4;
-  drawPath(); ctx.stroke();
+  if (!lite) {
+    // Самый широкий слой свечения — дорогой; при большом числе линий его пропускаем
+    ctx.strokeStyle = withAlpha(color, 0.18 * intensity);
+    ctx.lineWidth = width * 4;
+    drawPath(); ctx.stroke();
+  }
   ctx.strokeStyle = withAlpha(color, 0.35 * intensity);
   ctx.lineWidth = width * 2;
   drawPath(); ctx.stroke();

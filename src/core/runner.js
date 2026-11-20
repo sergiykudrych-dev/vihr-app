@@ -100,6 +100,8 @@ export class Runner {
     ctx.fillStyle = this.bg;
     ctx.fillRect(0, 0, this.w, this.h);
     if (!game) return;
+    // Видимый радиус в координатах мира — игры не рисуют то, что за краем экрана
+    game.viewR = Math.hypot(this.w, this.h) / 2 / this.scale;
     const music = track.analyse();
     game.update(dt, music);
     ctx.setTransform(this.dpr * this.scale, 0, 0, this.dpr * this.scale, (this.w / 2) * this.dpr, (this.h / 2) * this.dpr);

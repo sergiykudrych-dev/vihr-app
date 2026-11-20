@@ -169,3 +169,19 @@
   width: 44px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .palette-sheet { animation: none; } }
+
+/* Количество колец */
+.sheet-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+.sheet-section[hidden] { display: none; }
+.ring-count { display: flex; gap: var(--sp-2); align-items: center; }
+.ring-count .chips { flex: 1; min-width: 0; }
+.ring-count .chip { min-height: 40px; padding: 0 14px; }
+.ring-count__input {
+  width: 76px; min-height: 40px; flex: none; padding: 0 10px; text-align: center;
+  border-radius: var(--r-pill); border: 1px solid var(--c-border-strong);
+  background: var(--c-surface-2); color: var(--c-text); font-size: var(--fs-md); font-weight: 600;
+  -moz-appearance: textfield;
+}
+.ring-count__input::-webkit-outer-spin-button,
+.ring-count__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ring-count__input:focus { outline: 2px solid var(--c-accent); outline-offset: 1px; }
