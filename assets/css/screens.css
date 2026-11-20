@@ -127,3 +127,41 @@
 }
 .video-sheet__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 .rec-btn[aria-busy="true"] { opacity: .5; }
+
+/* Кнопка и панель цветов */
+.game-palette { position: absolute; top: calc(var(--safe-top) + 16px); right: calc(var(--sp-4) + var(--tap) + var(--sp-2)); }
+.game-palette[hidden] { display: none; }
+
+.palette-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) calc(var(--safe-bottom) + var(--sp-4));
+  background: rgba(21, 20, 42, .94); border-top: 1px solid var(--c-border);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  animation: sheet-up .22s var(--ease);
+}
+.palette-sheet[hidden] { display: none; }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.palette-sheet__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.palette-sheet__title { font-size: var(--fs-lg); }
+
+.palette-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+.swatch {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  min-height: 60px; padding: var(--sp-2); border-radius: var(--r-md);
+  background: var(--c-surface-2); border: 1.5px solid transparent; color: var(--c-text);
+  font-size: var(--fs-sm); font-weight: 500;
+}
+.swatch[aria-pressed="true"] { border-color: var(--c-accent); }
+.swatch__bar { height: 18px; border-radius: 9px; }
+
+.palette-custom { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.palette-custom[hidden] { display: none; }
+.palette-custom__item {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  min-height: var(--tap); padding: 0 var(--sp-3); border-radius: var(--r-md); background: var(--c-surface-2);
+}
+.palette-custom__item input[type="color"] {
+  width: 44px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) { .palette-sheet { animation: none; } }

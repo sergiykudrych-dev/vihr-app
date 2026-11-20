@@ -10,6 +10,9 @@ const defaults = {
   trackVolume: 0.9,
   hitsWithMusic: 0.5,
   muted: false,
+  palette: 'rainbow',
+  paletteFrom: '#22E4F5',
+  paletteTo: '#FF4FD8',
   react: { beat: true, bass: true, color: false },
   customGames: [],
 };

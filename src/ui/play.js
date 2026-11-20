@@ -1,6 +1,6 @@
 // Игровой экран: почти пустой — игра по центру, счёт, прогресс трека и кнопка записи.
 
-import { $, toast } from './dom.js';
+import { $, el, toast } from './dom.js';
 import { Runner } from '../core/runner.js';
 import { Recorder, canRecord, saveVideo } from '../core/recorder.js';
 import { GAMES, CUSTOM_META } from '../games/registry.js';
@@ -8,6 +8,7 @@ import { store } from '../core/store.js';
 import { track } from '../audio/track.js';
 import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
+import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 
 let runner = null;
 let recorder = null;
@@ -57,6 +58,8 @@ export function initPlay() {
     renderMute();
     toast(audio.muted ? 'Звук касаний выключен' : 'Звук касаний включён');
   });
+
+  initPalette();
 
   recorder = new Recorder(canvas);
   $('#rec-btn').addEventListener('click', toggleRecord);
@@ -146,7 +149,9 @@ export function enterPlay(id) {
   const found = findGame(id);
   if (!found) { go('games'); return; }
   lastScore = -1;
-  runner.setGame(found.create());
+  const game = found.create();
+  runner.setGame(game);
+  setupPaletteFor(game);
   runner.resize();
   runner.start();
   const hint = $('#game-hint');
@@ -164,7 +169,73 @@ export async function leavePlay() {
   setRecButton(false);
   stopping = false;
   closeVideo();
+  closePalette();
   runner.stop();
   runner.setGame(null);
   track.pause();
+}
+
+// ===== Цвета колец =====
+
+const customColors = () => ({ from: store.data.paletteFrom, to: store.data.paletteTo });
+
+function applyPalette() {
+  const g = runner.game;
+  if (g && g.setPalette) g.setPalette(store.data.palette, customColors());
+}
+
+function renderSwatches() {
+  const current = store.data.palette;
+  $('#palette-grid').replaceChildren(...PALETTE_KEYS.map((key) => el('button', {
+    class: 'swatch', type: 'button', 'aria-pressed': String(key === current),
+    onclick: () => {
+      store.set('palette', key);
+      applyPalette();
+      renderSwatches();
+    },
+  }, el('span', { class: 'swatch__bar', style: `background:${paletteCss(key, customColors())}`, 'aria-hidden': 'true' }), PALETTES[key].name)));
+  $('#palette-custom').hidden = current !== 'custom';
+}
+
+function initPalette() {
+  const from = $('#palette-from');
+  const to = $('#palette-to');
+  from.value = store.data.paletteFrom;
+  to.value = store.data.paletteTo;
+  const onColor = () => {
+    store.data.paletteFrom = from.value;
+    store.data.paletteTo = to.value;
+    store.save();
+    applyPalette();
+    renderSwatches();
+  };
+  from.addEventListener('input', onColor);
+  to.addEventListener('input', onColor);
+
+  $('#game-palette').addEventListener('click', () => {
+    if ($('#palette-sheet').hidden) openPalette(); else closePalette();
+  });
+  $('#palette-done').addEventListener('click', closePalette);
+}
+
+function openPalette() {
+  renderSwatches();
+  $('#palette-sheet').hidden = false;
+  $('#game-hint').classList.add('is-hidden');
+  $('#game-palette').setAttribute('aria-expanded', 'true');
+  $('#rec-btn').hidden = true;
+}
+
+function closePalette() {
+  $('#palette-sheet').hidden = true;
+  $('#game-palette').setAttribute('aria-expanded', 'false');
+  if (canRecord()) $('#rec-btn').hidden = false;
+}
+
+/** Кнопка цветов видна только в играх, которые умеют менять палитру. */
+function setupPaletteFor(game) {
+  const supported = typeof game.setPalette === 'function';
+  $('#game-palette').hidden = !supported;
+  closePalette();
+  if (supported) applyPalette();
 }

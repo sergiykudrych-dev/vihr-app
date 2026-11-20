@@ -46,6 +46,9 @@
         <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-back"></use></svg>
       </a>
       <div class="game-score" id="game-score" aria-live="off">0</div>
+      <button class="icon-btn icon-btn--glass game-palette" id="game-palette" aria-label="Цвета колец" aria-expanded="false" aria-controls="palette-sheet" hidden>
+        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-palette"></use></svg>
+      </button>
       <button class="icon-btn icon-btn--glass game-mute" id="game-mute" aria-pressed="false" aria-label="Выключить звук касаний">
         <svg class="icon" aria-hidden="true"><use id="game-mute-icon" href="assets/img/icons/sprite.svg#i-sound"></use></svg>
       </button>
@@ -53,6 +56,19 @@
       <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
       <span class="rec-time" id="rec-time" hidden>0:00</span>
       <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Записать видео"><span></span></button>
+
+      <!-- Цвета колец: панель снизу, игра видна и меняется сразу -->
+      <div class="palette-sheet" id="palette-sheet" role="dialog" aria-labelledby="palette-title" hidden>
+        <div class="palette-sheet__head">
+          <h2 class="palette-sheet__title" id="palette-title">Цвета колец</h2>
+          <button class="btn btn--primary palette-sheet__done" id="palette-done" type="button">Готово</button>
+        </div>
+        <div class="palette-grid" id="palette-grid" role="group" aria-label="Палитры"></div>
+        <div class="palette-custom" id="palette-custom" hidden>
+          <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="palette-from"></label>
+          <label class="palette-custom__item"><span class="small muted">Край</span><input type="color" id="palette-to"></label>
+        </div>
+      </div>
 
       <!-- Готовое видео: превью и сохранение по отдельному нажатию (так требует iPhone) -->
       <div class="video-sheet" id="video-sheet" role="dialog" aria-modal="true" aria-labelledby="video-sheet-title" hidden>

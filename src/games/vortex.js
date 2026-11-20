@@ -3,6 +3,7 @@
 
 import { Game } from './base.js';
 import { neonStroke, withAlpha } from '../render/fx.js';
+import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
 const RINGS = 15;
@@ -35,15 +36,27 @@ export class VortexGame extends Game {
         rot: i * 0.42,
         spin: (i % 2 ? -1 : 1) * (0.35 + i * 0.035),
         data: { note: RINGS - i, ring: i },
-        // Радуга от оранжевого в центре до фиолетового снаружи
-        color: `hsl(${Math.round(18 + (i / (RINGS - 1)) * 250)},95%,60%)`,
+        color: '#FFFFFF', // задаётся палитрой ниже
         pulse: 0,
       };
       this.rings.push(arc);
       this.world.arcs.push(arc);
     }
+    this.applyPalette();
     this.addCenterBall();
     this.cleared = 0;
+  }
+
+  /** Сменить цвета колец на лету. key — из src/render/palettes.js */
+  setPalette(key, custom) {
+    this.palette = key;
+    this.paletteCustom = custom;
+    this.applyPalette();
+  }
+
+  applyPalette() {
+    const colors = paletteColors(this.palette || 'rainbow', this.rings.length, this.paletteCustom);
+    this.rings.forEach((r, i) => { r.color = colors[i]; });
   }
 
   addCenterBall() {
