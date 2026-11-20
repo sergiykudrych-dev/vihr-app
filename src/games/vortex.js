@@ -2,13 +2,16 @@
 // Удар о кольцо — нота, выход через разрыв — кольцо разбивается со звоном.
 
 import { Game } from './base.js';
-import { RAINBOW, neonStroke, withAlpha } from '../render/fx.js';
+import { neonStroke, withAlpha } from '../render/fx.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 10;
+const RINGS = 15;
+const INNER_R = 44;   // радиус первого кольца
+const STEP = 18;      // расстояние между кольцами (внешнее ≈ 296 — почти весь экран)
 
 export class VortexGame extends Game {
   setup() {
+    this.padding = 1.04; // кольца крупные, почти от края до края
     this.world.gravity = 0;
     this.world.minSpeed = 260;
     this.world.maxSpeed = 900;
@@ -22,13 +25,18 @@ export class VortexGame extends Game {
     this.world.balls = [];
     this.rings = [];
     for (let i = 0; i < RINGS; i++) {
-      const gap = 0.55 - i * 0.025;
+      const R = INNER_R + i * STEP;
+      // Разрыв примерно одной длины на всех кольцах (на внешних — меньший угол)
+      const gap = Math.max(0.28, 34 / R);
       const arc = {
-        cx: 0, cy: 0, R: 62 + i * 23, w: 5,
-        start: 0, len: TAU - gap, rot: Math.random() * TAU,
-        spin: (i % 2 ? -1 : 1) * (0.5 + i * 0.06),
+        cx: 0, cy: 0, R, w: 4.5,
+        start: 0, len: TAU - gap,
+        // Разрывы выстроены спиралью — как в залипательных роликах
+        rot: i * 0.42,
+        spin: (i % 2 ? -1 : 1) * (0.35 + i * 0.035),
         data: { note: RINGS - i, ring: i },
-        color: RAINBOW[i % RAINBOW.length],
+        // Радуга от оранжевого в центре до фиолетового снаружи
+        color: `hsl(${Math.round(18 + (i / (RINGS - 1)) * 250)},95%,60%)`,
         pulse: 0,
       };
       this.rings.push(arc);
@@ -40,7 +48,7 @@ export class VortexGame extends Game {
 
   addCenterBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, r: 9, color: '#FFFFFF' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, r: 5.5, color: '#FFFFFF' });
   }
 
   tap() {
@@ -102,7 +110,7 @@ export class VortexGame extends Game {
     // Тёмный центр
     ctx.fillStyle = withAlpha('#1A1740', 0.9);
     ctx.beginPath();
-    ctx.arc(0, 0, 40, 0, TAU);
+    ctx.arc(0, 0, 30, 0, TAU);
     ctx.fill();
   }
 }

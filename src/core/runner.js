@@ -33,6 +33,7 @@ export class Runner {
   setGame(game) {
     this.game = game;
     if (game) game.react = track.react;
+    if (this.w) this.resize();
   }
 
   resize() {
@@ -43,7 +44,9 @@ export class Runner {
     this.canvas.height = Math.max(1, Math.round(r.height * dpr));
     this.dpr = dpr;
     // Арена (2*ARENA) вписывается в меньшую сторону; padding < 1 делает её меньше
-    this.scale = (Math.min(this.w, this.h) / (ARENA * 2)) * this.padding;
+    // Игра может попросить свой размер (game.padding), например «Вихрь» — почти на весь экран
+    const pad = (this.game && this.game.padding) || this.padding;
+    this.scale = (Math.min(this.w, this.h) / (ARENA * 2)) * pad;
   }
 
   toWorld(e) {
