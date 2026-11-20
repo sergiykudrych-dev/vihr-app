@@ -50,6 +50,9 @@ class Track {
       this.duration = buf.duration;
     } catch (e) {
       console.warn('Не удалось построить волну трека', e);
+      // Волну не построили — проверим, может ли браузер вообще играть этот файл
+      const ok = await canPlay(el);
+      if (!ok) { this.unload(); throw new Error('unsupported'); }
     }
     this._emit();
   }
@@ -111,6 +114,16 @@ class Track {
     s.hue = (s.hue * 0.9) + ((centroid / (bins.length * 0.35)) * 300) * 0.1;
     return s;
   }
+}
+
+function canPlay(el) {
+  return new Promise((resolve) => {
+    if (el.readyState >= 2) return resolve(true);
+    const done = (v) => { clearTimeout(t); resolve(v); };
+    const t = setTimeout(() => done(el.readyState >= 1), 4000);
+    el.addEventListener('canplay', () => done(true), { once: true });
+    el.addEventListener('error', () => done(false), { once: true });
+  });
 }
 
 function computePeaks(buffer, count) {

@@ -10,6 +10,15 @@ const REACTIONS = [
   { key: 'color', title: 'Мелодия → цвет', sub: 'Цвет меняется с высотой звука' },
 ];
 
+const AUDIO_EXT = ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'opus', 'flac', 'webm', 'mp4', 'caf', 'aif', 'aiff'];
+
+function isAudioFile(file) {
+  if (file.type && file.type.startsWith('audio/')) return true;
+  const ext = file.name.split('.').pop().toLowerCase();
+  // Файлы из Telegram и мессенджеров часто приходят без типа — смотрим на расширение
+  return AUDIO_EXT.includes(ext) || !file.type;
+}
+
 function drawWave() {
   const c = $('#track-wave');
   const r = c.getBoundingClientRect();
@@ -67,6 +76,11 @@ export function initTrack() {
   $('#track-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!isAudioFile(file)) {
+      toast('Это не музыкальный файл. Выбери MP3, M4A или WAV');
+      e.target.value = '';
+      return;
+    }
     try {
       await track.load(file);
       toast('Трек загружен');
