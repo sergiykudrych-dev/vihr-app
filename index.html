@@ -53,6 +53,18 @@
       <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
       <span class="rec-time" id="rec-time" hidden>0:00</span>
       <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Записать видео"><span></span></button>
+
+      <!-- Готовое видео: превью и сохранение по отдельному нажатию (так требует iPhone) -->
+      <div class="video-sheet" id="video-sheet" role="dialog" aria-modal="true" aria-labelledby="video-sheet-title" hidden>
+        <div class="video-sheet__card">
+          <h2 class="video-sheet__title" id="video-sheet-title">Видео готово</h2>
+          <video class="video-sheet__video" id="video-preview" playsinline muted loop autoplay></video>
+          <div class="video-sheet__actions">
+            <button class="btn btn--ghost" id="video-discard" type="button">Удалить</button>
+            <button class="btn btn--primary" id="video-save" type="button">Сохранить</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

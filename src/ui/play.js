@@ -60,18 +60,39 @@ export function initPlay() {
 
   recorder = new Recorder(canvas);
   $('#rec-btn').addEventListener('click', toggleRecord);
+  $('#video-save').addEventListener('click', saveCurrentVideo);
+  $('#video-discard').addEventListener('click', closeVideo);
   if (!canRecord()) $('#rec-btn').hidden = true;
+}
+
+const MIN_RECORD_MS = 2000; // короче iPhone может отдать пустой файл
+let videoBlob = null;
+let videoUrl = '';
+let stopping = false;
+
+function setRecButton(recording) {
+  const btn = $('#rec-btn');
+  btn.setAttribute('aria-pressed', String(recording));
+  btn.setAttribute('aria-label', recording ? 'Остановить запись' : 'Записать видео');
 }
 
 async function toggleRecord() {
   const btn = $('#rec-btn');
+  if (stopping) return;
   if (recorder.active) {
+    // Слишком короткая запись — дописываем до 2 секунд, потом останавливаем
+    stopping = true;
+    btn.setAttribute('aria-busy', 'true');
+    const left = MIN_RECORD_MS - (performance.now() - recorder.startedAt);
+    if (left > 0) await new Promise((r) => setTimeout(r, left));
     clearInterval(recTimer);
-    btn.setAttribute('aria-pressed', 'false');
-    btn.setAttribute('aria-label', 'Записать видео');
     $('#rec-time').hidden = true;
     const blob = await recorder.stop();
-    if (blob && blob.size) { await saveVideo(blob); toast('Видео сохранено'); }
+    btn.removeAttribute('aria-busy');
+    setRecButton(false);
+    stopping = false;
+    if (!blob || !blob.size) { toast('Не получилось записать. Попробуй ещё раз'); return; }
+    showVideo(blob);
     return;
   }
   try {
@@ -81,8 +102,7 @@ async function toggleRecord() {
     toast('Запись не поддерживается в этом браузере');
     return;
   }
-  btn.setAttribute('aria-pressed', 'true');
-  btn.setAttribute('aria-label', 'Остановить запись');
+  setRecButton(true);
   const time = $('#rec-time');
   time.hidden = false;
   time.textContent = '0:00';
@@ -90,6 +110,36 @@ async function toggleRecord() {
     const s = Math.floor((performance.now() - recorder.startedAt) / 1000);
     time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   }, 250);
+}
+
+function showVideo(blob) {
+  closeVideo();
+  videoBlob = blob;
+  videoUrl = URL.createObjectURL(blob);
+  const v = $('#video-preview');
+  v.src = videoUrl;
+  v.play().catch(() => {});
+  $('#video-sheet').hidden = false;
+}
+
+function closeVideo() {
+  const v = $('#video-preview');
+  v.pause();
+  v.removeAttribute('src');
+  v.load();
+  if (videoUrl) URL.revokeObjectURL(videoUrl);
+  videoUrl = '';
+  videoBlob = null;
+  $('#video-sheet').hidden = true;
+}
+
+async function saveCurrentVideo() {
+  if (!videoBlob) return;
+  // Вызывается прямо из нажатия — iPhone разрешит «Сохранить видео» в меню «Поделиться»
+  const result = await saveVideo(videoBlob);
+  if (result === 'cancelled') return;
+  closeVideo();
+  toast(result === 'shared' ? 'Готово' : 'Видео скачано');
 }
 
 export function enterPlay(id) {
@@ -108,7 +158,12 @@ export function enterPlay(id) {
 }
 
 export async function leavePlay() {
-  if (recorder && recorder.active) await toggleRecord();
+  if (recorder && recorder.active) await recorder.stop();
+  clearInterval(recTimer);
+  $('#rec-time').hidden = true;
+  setRecButton(false);
+  stopping = false;
+  closeVideo();
   runner.stop();
   runner.setGame(null);
   track.pause();

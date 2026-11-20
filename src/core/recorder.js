@@ -79,12 +79,22 @@ export class Recorder {
   }
 }
 
-/** Скачать видео (на телефоне откроется меню «Поделиться», если доступно). */
+/**
+ * Сохранить видео. Вызывать прямо из нажатия кнопки.
+ * На телефоне откроется меню «Поделиться» (там «Сохранить видео» в Фото), иначе — скачивание.
+ * @returns {Promise<'shared'|'downloaded'|'cancelled'>}
+ */
 export async function saveVideo(blob, name = 'vihr') {
   const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
   const file = new File([blob], `${name}-${Date.now()}.${ext}`, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'Вихрь' }); return; } catch (e) { /* отменили — скачаем */ }
+    try {
+      await navigator.share({ files: [file] });
+      return 'shared';
+    } catch (e) {
+      if (e && e.name === 'AbortError') return 'cancelled'; // закрыли меню — оставляем окно
+      // Другая ошибка — пробуем обычное скачивание
+    }
   }
   const url = URL.createObjectURL(file);
   const a = document.createElement('a');
@@ -94,4 +104,5 @@ export async function saveVideo(blob, name = 'vihr') {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return 'downloaded';
 }
