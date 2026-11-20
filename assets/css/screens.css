@@ -197,3 +197,13 @@
 .bars__bar { width: 100%; background: var(--c-accent); border-radius: 4px 4px 0 0; min-height: 3px; }
 .bars__day { font-size: 10px; color: var(--c-text-3); margin-top: 3px; }
 .toplist__row { display: flex; justify-content: space-between; gap: var(--sp-3); padding: 10px 0; border-bottom: 1px solid var(--c-border); font-size: var(--fs-md); }
+.screen[data-screen="admin"] { padding-left: var(--sp-4); padding-right: var(--sp-4); gap: var(--sp-2); }
+#admin-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+#admin-body .card { padding: var(--sp-2) var(--sp-4); }
+#admin-body .toggle-row { min-height: 60px; }
+.admin-h { margin: var(--sp-5) 0 var(--sp-1); }
+/* Переключатель в админке: кружок крупнее */
+#admin-body .switch { width: 58px; }
+#admin-body .switch::before { width: 54px; height: 30px; top: 7px; }
+#admin-body .switch::after { width: 26px; height: 26px; top: 9px; right: 24px; }
+#admin-body .switch[aria-checked="true"]::after { right: 3px; }
