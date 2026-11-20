@@ -122,9 +122,17 @@ export class SpiralGame extends Game {
   }
 
   tick(dt) {
+    // Если до ближайшего кольца далеко (шарик болтается в пустоте), кольца сжимаются быстрее
+    const inner = this.world.arcs[0];
+    let shrink = SHRINK;
+    if (inner) {
+      const far = this.world.balls.reduce((m, b) => Math.max(m, Math.hypot(b.x, b.y)), 0);
+      const gap = inner.R - far;
+      shrink = SHRINK * (1 + Math.min(14, Math.max(0, gap - 50) / 18));
+    }
     for (const r of this.rings) {
       r.rot += SPIN * this.dir * dt;
-      if (!r.broken) r.R -= SHRINK * dt;
+      if (!r.broken) r.R -= shrink * dt;
       r.glow = Math.max(0, r.glow - dt * 3);
       if (r.alpha < 1) { r.delay -= dt; if (r.delay <= 0) r.alpha = Math.min(1, r.alpha + dt * 4); }
     }
