@@ -36,7 +36,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
     const isAdmin = adminIds.includes(msg.from && msg.from.id);
     if (text.startsWith('/start')) {
       await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', playButton);
-      if (isAdmin) await send(chat, 'Админ: статистика — кнопкой внизу 👇', adminKeyboard);
+      if (isAdmin) await send(chat, '📊', adminKeyboard);
     } else if ((text.startsWith('/stats') || text === STATS_BTN) && isAdmin) {
       await sendStats(chat);
     }
