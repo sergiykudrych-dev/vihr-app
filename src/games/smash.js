@@ -13,7 +13,7 @@ const TAU = Math.PI * 2;
 const WALL_R = 300;     // внешняя стенка
 const FIELD_R = 232;    // до какого радиуса лежат плитки
 const HOLE_R = 30;      // воронка в центре
-const BALL_R = 12;
+const BALL_R = 16;   // как в примере: шарик размером с 2–3 плитки
 const SPEED = 380;
 const COLORS = 24;      // оттенков в палитре
 const REBUILD_DELAY = 1.2;
@@ -37,7 +37,8 @@ export class SmashGame extends Game {
     this.rebuildIn = 0;
     this.spin = 0;
     this.buildField();
-    for (let i = 0; i < 3; i++) this.addEdgeBall(i * TAU / 3 + 0.4);
+    // Как в примере: стартуют два шарика, остальные — по касанию
+    for (let i = 0; i < 2; i++) this.addEdgeBall(i * Math.PI + 0.6);
   }
 
   // ===== Поле =====
@@ -116,6 +117,9 @@ export class SmashGame extends Game {
     if (type === 'peg' && wall.data && wall.data.tile) {
       if (wall.dead) return;
       this.breakTile(wall, b);
+      // Шарик меняет цвет при каждом ударе
+      b.colorIdx = ((b.colorIdx ?? 0) + 1) % NEON.length;
+      b.color = NEON[b.colorIdx];
       return;
     }
     if (impact < 30) return;
