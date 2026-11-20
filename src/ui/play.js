@@ -225,12 +225,39 @@ function initPalette() {
   });
   $('#palette-done').addEventListener('click', closePalette);
 
-  // Своё число колец: применяем по Enter или когда поле теряет фокус
+  // Своё число колец: только цифры, больше максимума набрать нельзя.
+  // Применяем по Enter / «Готово» на клавиатуре или когда поле теряет фокус.
   const input = $('#ring-count-input');
+  // Буквы и любые символы кроме цифр не попадают в поле вообще — ни с клавиатуры, ни вставкой
+  input.addEventListener('keydown', (e) => {
+    if (e.key.length === 1 && !/[0-9]/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault();
+  });
+  input.addEventListener('beforeinput', (e) => {
+    if (e.data && /\D/.test(e.data)) {
+      e.preventDefault();
+      // Вставили «abc45» — оставляем только цифры
+      const digits = e.data.replace(/\D/g, '');
+      if (digits && e.inputType === 'insertFromPaste') {
+        input.setRangeText(digits, input.selectionStart, input.selectionEnd, 'end');
+        input.dispatchEvent(new Event('input'));
+      }
+    }
+  });
+  input.addEventListener('input', () => {
+    const max = Number(input.dataset.max);
+    let v = input.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, String(max).length);
+    if (v && Number(v) > max) {
+      v = String(max);
+      showLimit(`Максимум ${max}`);
+    }
+    if (input.value !== v) input.value = v;
+  });
   const applyInput = () => {
+    const min = Number(input.dataset.min);
     const n = parseInt(input.value, 10);
-    if (Number.isFinite(n)) setRingCount(n);
-    else renderRingCount();
+    if (!Number.isFinite(n)) { renderRingCount(); return; }
+    if (n < min) showLimit(`Минимум ${min}`);
+    setRingCount(n);
   };
   input.addEventListener('change', applyInput);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { input.blur(); } });
@@ -257,10 +284,28 @@ function renderRingCount() {
     onclick: () => setRingCount(n),
   }, String(n))));
   const input = $('#ring-count-input');
-  input.min = o.min;
-  input.max = o.max;
+  input.dataset.min = o.min;
+  input.dataset.max = o.max;
+  input.maxLength = String(o.max).length;
   input.value = o.value;
-  $('#ring-count-hint').textContent = `Своё число — от ${o.min} до ${o.max}`;
+  if (!limitTimer) $('#ring-count-hint').textContent = `Своё число — от ${o.min} до ${o.max}`;
+}
+
+let limitTimer = 0;
+/** Подсветить поле и подсказку красным на пару секунд. */
+function showLimit(text) {
+  const input = $('#ring-count-input');
+  const hint = $('#ring-count-hint');
+  hint.textContent = text;
+  input.classList.add('is-limit');
+  hint.classList.add('is-limit');
+  clearTimeout(limitTimer);
+  limitTimer = setTimeout(() => {
+    limitTimer = 0;
+    input.classList.remove('is-limit');
+    hint.classList.remove('is-limit');
+    renderRingCount();
+  }, 1800);
 }
 
 /** Блок «Сколько колец» есть только у игр, которые это умеют (Вихрь, Туннель). */

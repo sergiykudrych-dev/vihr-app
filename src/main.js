@@ -7,6 +7,9 @@ import { initSounds } from './ui/sounds.js';
 import { initTrack, enterTrack } from './ui/track.js';
 import { initBuilder, enterBuilder, leaveBuilder } from './ui/builder.js';
 import { audio } from './audio/engine.js';
+import { lockViewport } from './core/nozoom.js';
+
+lockViewport();
 
 initGames();
 initPlay();

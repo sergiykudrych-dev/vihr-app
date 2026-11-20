@@ -18,6 +18,7 @@
     "./src/audio/packs.js": "./src/audio/packs.js?v=0588e482",
     "./src/audio/scales.js": "./src/audio/scales.js?v=fc01a98c",
     "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
+    "./src/core/nozoom.js": "./src/core/nozoom.js?v=b5037add",
     "./src/core/recorder.js": "./src/core/recorder.js?v=806119f0",
     "./src/core/router.js": "./src/core/router.js?v=bc4b91cb",
     "./src/core/runner.js": "./src/core/runner.js?v=8d39a776",
@@ -31,14 +32,14 @@
     "./src/games/registry.js": "./src/games/registry.js?v=74f580bd",
     "./src/games/tunnel.js": "./src/games/tunnel.js?v=20d3eb2e",
     "./src/games/vortex.js": "./src/games/vortex.js?v=92a9942a",
-    "./src/main.js": "./src/main.js?v=55a023f3",
+    "./src/main.js": "./src/main.js?v=427b7016",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
     "./src/render/fx.js": "./src/render/fx.js?v=f3d3d22f",
     "./src/render/palettes.js": "./src/render/palettes.js?v=4d4b1595",
     "./src/ui/builder.js": "./src/ui/builder.js?v=f5b8dce4",
     "./src/ui/dom.js": "./src/ui/dom.js?v=13b8a61d",
     "./src/ui/games.js": "./src/ui/games.js?v=b449bff7",
-    "./src/ui/play.js": "./src/ui/play.js?v=e6b5d070",
+    "./src/ui/play.js": "./src/ui/play.js?v=d2134c7d",
     "./src/ui/sounds.js": "./src/ui/sounds.js?v=66966e92",
     "./src/ui/track.js": "./src/ui/track.js?v=bcec377d"
   }
@@ -47,9 +48,9 @@
 <!-- importmap:end -->
   <link rel="stylesheet" href="assets/css/fonts.css?v=d77e4cc7">
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
-  <link rel="stylesheet" href="assets/css/base.css?v=a2d3c3b0">
+  <link rel="stylesheet" href="assets/css/base.css?v=ab25fe64">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
-  <link rel="stylesheet" href="assets/css/screens.css?v=0a370d00">
+  <link rel="stylesheet" href="assets/css/screens.css?v=44625de9">
 </head>
 <body>
 <div class="app" id="app">
@@ -103,7 +104,7 @@
           <span class="label" id="ring-count-label">Сколько колец</span>
           <div class="ring-count">
             <div class="chips" id="ring-presets" role="group" aria-labelledby="ring-count-label"></div>
-            <input class="ring-count__input" id="ring-count-input" type="number" inputmode="numeric" aria-label="Своё число колец">
+            <input class="ring-count__input" id="ring-count-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" aria-label="Своё число колец" aria-describedby="ring-count-hint">
           </div>
           <p class="small muted" id="ring-count-hint"></p>
         </div>
@@ -274,6 +275,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script type="module" src="src/main.js?v=55a023f3"></script>
+<script type="module" src="src/main.js?v=427b7016"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* Базовые стили: сброс, типографика, каркас приложения */
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; touch-action: manipulation; }
 
 html, body {
   margin: 0;
@@ -11,7 +11,22 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
+  /* Долгое нажатие не выделяет текст и не открывает меню */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
+
+/* Сама страница никогда не прокручивается и не «пружинит»: прокручиваются только списки внутри экранов */
+html, body { position: fixed; inset: 0; overflow: hidden; }
+
+/* В полях ввода выделение нужно */
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+/* iPhone увеличивает страницу при фокусе на поле со шрифтом меньше 16px — держим 16px */
+input, select, textarea { font-size: 16px; }
 
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: var(--fs-2xl); line-height: 1.25; font-weight: 700; letter-spacing: -0.5px; }
@@ -45,6 +60,8 @@ svg { display: block; }
   display: none;
   flex-direction: column;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: calc(var(--safe-top) + 24px) var(--sp-4) calc(var(--nav-h) + var(--safe-bottom) + 24px);
   gap: var(--sp-4);
 }

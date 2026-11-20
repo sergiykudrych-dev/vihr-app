@@ -179,9 +179,8 @@
 .ring-count__input {
   width: 76px; min-height: 40px; flex: none; padding: 0 10px; text-align: center;
   border-radius: var(--r-pill); border: 1px solid var(--c-border-strong);
-  background: var(--c-surface-2); color: var(--c-text); font-size: var(--fs-md); font-weight: 600;
-  -moz-appearance: textfield;
+  background: var(--c-surface-2); color: var(--c-text); font-size: 16px; font-weight: 600;
 }
-.ring-count__input::-webkit-outer-spin-button,
-.ring-count__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .ring-count__input:focus { outline: 2px solid var(--c-accent); outline-offset: 1px; }
+.ring-count__input.is-limit { border-color: var(--neon-red); }
+#ring-count-hint.is-limit { color: var(--neon-red); }
