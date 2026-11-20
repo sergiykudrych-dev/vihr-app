@@ -17,7 +17,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
     ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Play', web_app: { url: webAppUrl } }]] } }
     : {};
   // Кнопка статистики внизу чата — только у админа
-  const adminKeyboard = { reply_markup: { keyboard: [[{ text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
+  const adminKeyboard = { reply_markup: { keyboard: [[...(webAppUrl ? [{ text: '🌀 Play', web_app: { url: webAppUrl } }] : []), { text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
 
   async function sendStats(chat) {
     const s = await stats();
@@ -41,6 +41,9 @@ export function startBot({ token, webAppUrl, adminIds }) {
       await sendStats(chat);
     }
   }
+
+  // Кнопка «Play» слева от поля ввода (меню бота) — у всех
+  if (webAppUrl) api('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Play', web_app: { url: webAppUrl } } }).catch(() => {});
 
   (async () => {
     // long polling не работает вместе с вебхуком; пробуем, пока Telegram не ответит
