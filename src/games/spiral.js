@@ -25,7 +25,7 @@ export class SpiralGame extends Game {
     this.world.gravity = GRAVITY;
     this.world.minSpeed = 0;     // с гравитацией скорость меняется сама
     this.world.maxSpeed = 300;
-    this.world.restitution = 0.98;
+    this.world.restitution = 0.8; // отскок мягче — шарик оседает на дно кольца
     this.world.ballCollisions = true;
     this.maxBalls = 20;
     this.ringCount = RINGS;
@@ -46,7 +46,8 @@ export class SpiralGame extends Game {
       this.rings.push({
         cx: 0, cy: 0, R: INNER_R + k * step, w: this.w,
         start: 0, len: TAU - GAP, rot: k * TWIST + (this.rot0 || 0),
-        spin: SPIN, data: { note: k }, k, color: '#fff', glow: 0, alpha: 0, delay: k * 0.012,
+        // spin: 0 — стенка не подталкивает шарик по кругу (вращается только рисунок)
+        spin: 0, data: { note: k }, k, color: '#fff', glow: 0, alpha: 0, delay: k * 0.012,
       });
     }
     this.world.arcs = this.rings.slice();
@@ -86,6 +87,8 @@ export class SpiralGame extends Game {
   }
 
   onBallWall(b, ring, impact) {
+    // Трение о стенку: шарик не катается по кругу, а оседает вниз
+    b.vx *= 0.86; b.vy *= 0.86;
     if (impact < 25) return;
     ring.glow = 1;
     this.sound(ring.k, impact, { pack: 'glass' });
@@ -133,10 +136,6 @@ export class SpiralGame extends Game {
         this.build();
         for (const b of this.world.balls) { b.x = (Math.random() - 0.5) * 6; b.y = (Math.random() - 0.5) * 6; }
       }
-    }
-    // Почти замер на дне — маленький подскок, чтобы игра не останавливалась
-    for (const b of this.world.balls) {
-      if (Math.hypot(b.vx, b.vy) < 25) { b.vy -= 90; b.vx += (Math.random() - 0.5) * 50; }
     }
     // Шарик улетел совсем далеко (за экран) — возвращаем в центр
     for (const b of this.world.balls) if (Math.hypot(b.x, b.y) > OUTER_R + 120) { b.x = 0; b.y = 0; }
