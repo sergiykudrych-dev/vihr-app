@@ -10,7 +10,7 @@ const RINGS = 22;           // круг чуть шире экрана, свер
 const INNER_R = 44;         // радиус первого кольца
 const STEP = 18;            // расстояние между кольцами
 const COLOR_SPAN = 22;      // палитра от центра до последнего кольца
-const SHRINK = STEP * 0.7;  // на сколько сужаются оставшиеся кольца, когда одно разбили
+const SHRINK = STEP;        // разбили кольцо — весь круг сжимается на один шаг (первое целое кольцо встаёт на место разбитого)
 
 export class VortexGame extends Game {
   setup() {
@@ -94,10 +94,12 @@ export class VortexGame extends Game {
 
   tick(dt) {
     // Плавное сужение после разбитого кольца
-    this.shrinkAnim += (this.shrink - this.shrinkAnim) * Math.min(1, dt * 3);
+    this.shrinkAnim += (this.shrink - this.shrinkAnim) * Math.min(1, dt * 4);
     for (const r of this.rings) {
       if (r.broken) continue;
       r.R = r.baseR - this.shrinkAnim;
+      // Разрыв всегда примерно одной длины, даже когда кольцо сжалось
+      r.len = TAU - Math.max(0.28, 34 / r.R);
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
     }
