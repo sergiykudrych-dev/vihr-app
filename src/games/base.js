@@ -47,7 +47,7 @@ export class Game {
   tap(x, y) {
     if (this.world.balls.length >= this.maxBalls) this.world.balls.shift();
     const a = Math.random() * Math.PI * 2;
-    this.world.addBall({ x, y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, r: 12, color: NEON[this.world.balls.length % NEON.length] });
+    this.world.addBall({ x, y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, r: 15, color: NEON[this.world.balls.length % NEON.length] });
   }
 
   drag() {}

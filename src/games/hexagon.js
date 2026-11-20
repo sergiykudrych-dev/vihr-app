@@ -24,7 +24,7 @@ export class HexagonGame extends Game {
       w.segments.push(s);
     }
     this.place();
-    w.addBall({ x: 0, y: -60, vx: 180, vy: 0, r: 13, color: '#FFFFFF' });
+    w.addBall({ x: 0, y: -60, vx: 180, vy: 0, r: 16, color: '#FFFFFF' });
   }
 
   place() {

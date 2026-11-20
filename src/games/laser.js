@@ -20,7 +20,7 @@ export class LaserGame extends Game {
     const colors = ['#4BF28A', '#FF4FD8', '#22E4F5', '#FFD84A', '#B25BFF'];
     colors.forEach((c, i) => {
       const a = (i / colors.length) * TAU;
-      const b = w.addBall({ x: Math.cos(a) * 120, y: Math.sin(a) * 120, vx: Math.cos(a + 2) * 340, vy: Math.sin(a + 2) * 340, r: 13, color: c });
+      const b = w.addBall({ x: Math.cos(a) * 120, y: Math.sin(a) * 120, vx: Math.cos(a + 2) * 340, vy: Math.sin(a + 2) * 340, r: 16, color: c });
       b.data.points = [];
     });
   }
@@ -29,7 +29,7 @@ export class LaserGame extends Game {
     if (Math.hypot(x, y) > R - 20) { const k = (R - 30) / Math.hypot(x, y); x *= k; y *= k; }
     if (this.world.balls.length >= this.maxBalls) this.world.balls.shift();
     const a = Math.random() * TAU;
-    const b = this.world.addBall({ x, y, vx: Math.cos(a) * 360, vy: Math.sin(a) * 360, r: 13, color: NEON[Math.floor(Math.random() * NEON.length)] });
+    const b = this.world.addBall({ x, y, vx: Math.cos(a) * 360, vy: Math.sin(a) * 360, r: 16, color: NEON[Math.floor(Math.random() * NEON.length)] });
     b.data.points = [];
   }
 

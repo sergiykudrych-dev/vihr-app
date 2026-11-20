@@ -50,7 +50,7 @@ export class PlinkoGame extends Game {
   drop(x = (Math.random() - 0.5) * 40) {
     if (this.world.balls.length >= this.maxBalls) this.world.balls.shift();
     const hue = 200 + Math.random() * 70;
-    this.world.addBall({ x, y: TOP - 50, vx: (Math.random() - 0.5) * 40, vy: 0, r: 8, color: `hsl(${hue},95%,68%)` });
+    this.world.addBall({ x, y: TOP - 50, vx: (Math.random() - 0.5) * 40, vy: 0, r: 10.5, color: `hsl(${hue},95%,68%)` });
   }
 
   onBeat() { this.drop(); }
