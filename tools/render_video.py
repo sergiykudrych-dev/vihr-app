@@ -112,8 +112,8 @@ with sync_playwright() as p:
 
 font = '/usr/share/fonts/opentype/inter/Inter-SemiBold.otf'
 vf = 'null' if a.no_watermark else (
-    f"drawtext=fontfile={font}:text='Spinly':fontcolor=white@0.85:fontsize=54:x=(w-text_w)/2:y=h-210,"
-    f"drawtext=fontfile={font}:text='t.me/spinly_game_bot':fontcolor=0x22E4F5@0.85:fontsize=36:x=(w-text_w)/2:y=h-140")
+    f"drawtext=fontfile={font}:text='Spinly':fontcolor=white@0.85:fontsize=54:shadowcolor=black@0.85:shadowx=0:shadowy=3:borderw=2:bordercolor=black@0.55:x=(w-text_w)/2:y=h-210,"
+    f"drawtext=fontfile={font}:text='t.me/spinly_game_bot':fontcolor=0x22E4F5@0.85:fontsize=36:shadowcolor=black@0.85:shadowx=0:shadowy=3:borderw=2:bordercolor=black@0.55:x=(w-text_w)/2:y=h-140")
 subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', f'{tmp}/v.mp4', '-i', f'{tmp}/a.wav', '-vf', vf,
                 '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
                 '-t', str(a.secs), '-movflags', '+faststart', a.out], check=True)
