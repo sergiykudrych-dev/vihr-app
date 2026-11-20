@@ -15,6 +15,8 @@ const INNER_R = 26;       // первое кольцо
 const OUTER_R = 430;      // последнее кольцо (за краями экрана, как в примере)
 const GAP = 0.95;         // ширина разрыва, рад (~55°)
 const TWIST = 0.042;      // поворот разрыва от кольца к кольцу — спираль закручена сильнее
+const SHRINK = 2.6;       // кольца сами понемногу сжимаются к центру, px/с
+const MIN_R = 12;         // до такого радиуса кольцо сжимается и исчезает
 const SPIN = 0.55;        // вращение спирали, рад/с
 const BALL_R = 8.5;
 const MIN_BOUNCE = 260;   // минимальная скорость отлёта от линии после удара
@@ -122,10 +124,20 @@ export class SpiralGame extends Game {
   tick(dt) {
     for (const r of this.rings) {
       r.rot += SPIN * this.dir * dt;
+      if (!r.broken) r.R -= SHRINK * dt;
       r.glow = Math.max(0, r.glow - dt * 3);
       if (r.alpha < 1) { r.delay -= dt; if (r.delay <= 0) r.alpha = Math.min(1, r.alpha + dt * 4); }
     }
     this.rot0 = this.rings.length ? this.rings[0].rot : (this.rot0 || 0) + SPIN * this.dir * dt;
+
+    // Внутреннее кольцо сжалось до минимума — тихо исчезает (без очка и без разворота)
+    for (const r of this.world.arcs.slice()) {
+      if (r.R > MIN_R) break;
+      const i = this.world.arcs.indexOf(r);
+      if (i >= 0) this.world.arcs.splice(i, 1);
+      r.broken = true;
+      this.dust.push({ R: Math.max(r.R, 4), rot: r.rot, len: r.len, color: r.color, age: 0, life: 0.8 });
+    }
 
     // Шарик вышел за внутреннее целое кольцо — кольцо разбивается
     for (const b of this.world.balls) {
