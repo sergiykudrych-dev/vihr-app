@@ -1,12 +1,14 @@
-// «Соты» и «Мишень»: поле из сотен маленьких плиток, шарики врезаются в край и
-// разбивают плитки — они разлетаются кусками, поле «съедается» снаружи к центру.
-// В центре крутится воронка: шарик, добравшийся до неё, проваливается и
-// возвращается снаружи. Когда плиток не осталось, поле собирается заново.
+// «Соты» и «Мишень»: поле из сотен маленьких плиток.
+// Шарик летит по спирали к центру, проходит сквозь поле и лопает плитки со звуком.
+// Каждая плитка его немного тормозит; когда он почти остановился — лопается сам,
+// и снаружи появляется новый шарик, чуть быстрее прежнего.
+// Шарик, долетевший до воронки в центре, проваливается в неё.
+// Когда плиток не осталось, поле собирается заново.
 //
 // layout: 'hex' — шестиугольные соты, 'sectors' — кольца из секторов (как мишень).
 
 import { Game } from './base.js';
-import { neonStroke, withAlpha, NEON } from '../render/fx.js';
+import { neonStroke, withAlpha, NEON, drawBall } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
@@ -14,7 +16,12 @@ const WALL_R = 300;     // внешняя стенка
 const FIELD_R = 232;    // до какого радиуса лежат плитки
 const HOLE_R = 30;      // воронка в центре
 const BALL_R = 16;   // как в примере: шарик размером с 2–3 плитки
-const SPEED = 380;
+const SPEED = 230;          // скорость первого шарика
+const SPEED_UP = 1.07;      // каждый следующий шарик быстрее на 7%
+const SPEED_MAX = 900;
+const DRAG = 0.982;         // каждая лопнутая плитка оставляет шарику 98,2% скорости
+const POP_AT = 0.22;        // лопается, когда скорость упала до 22% от стартовой
+const SPIRAL = 0.11;        // насколько круто спираль уходит к центру
 const COLORS = 24;      // оттенков в палитре
 const REBUILD_DELAY = 1.2;
 
@@ -37,8 +44,9 @@ export class SmashGame extends Game {
     this.rebuildIn = 0;
     this.spin = 0;
     this.buildField();
-    // Как в примере: стартуют два шарика, остальные — по касанию
-    for (let i = 0; i < 2; i++) this.addEdgeBall(i * Math.PI + 0.6);
+    this.spirals = [];      // шарики на спирали (своя физика, не World)
+    this.generation = 0;    // сколько шариков уже было — от этого скорость
+    this.addSpiralBall(0.6);
   }
 
   // ===== Поле =====
@@ -97,43 +105,44 @@ export class SmashGame extends Game {
 
   // ===== Шарики =====
 
-  addEdgeBall(angle = Math.random() * TAU) {
-    const R = (FIELD_R + WALL_R) / 2;
-    // Летит в сторону поля, но не точно в центр
-    const dir = angle + Math.PI + (Math.random() - 0.5) * 1.1;
-    return this.world.addBall({
-      x: Math.cos(angle) * R, y: Math.sin(angle) * R,
-      vx: Math.cos(dir) * SPEED, vy: Math.sin(dir) * SPEED,
-      r: BALL_R, color: NEON[(this.serialBall = (this.serialBall || 0) + 1) % NEON.length],
-    });
+  addSpiralBall(angle = Math.random() * TAU, inherit = true) {
+    const speed = Math.min(SPEED_MAX, SPEED * Math.pow(SPEED_UP, this.generation));
+    if (inherit) this.generation++;
+    const b = {
+      a: angle, R: WALL_R - 26, speed, start: speed, dir: Math.random() < 0.5 ? 1 : -1,
+      r: BALL_R, baseR: BALL_R, color: NEON[this.generation % NEON.length], flash: 0, hits: 0, born: 0,
+      x: 0, y: 0, vx: 0, vy: 0,
+    };
+    this.place(b);
+    this.spirals.push(b);
+    return b;
+  }
+
+  place(b) {
+    b.x = Math.cos(b.a) * b.R; b.y = Math.sin(b.a) * b.R;
   }
 
   tap(x, y) {
-    if (this.world.balls.length >= this.maxBalls) return;
-    this.addEdgeBall(Math.atan2(y, x));
+    if (this.spirals.length >= this.maxBalls) return;
+    this.addSpiralBall(Math.atan2(y, x));
   }
 
-  onBallWall(b, wall, impact, type) {
-    if (type === 'peg' && wall.data && wall.data.tile) {
-      if (wall.dead) return;
-      this.breakTile(wall, b);
-      // Шарик меняет цвет при каждом ударе
-      b.colorIdx = ((b.colorIdx ?? 0) + 1) % NEON.length;
-      b.color = NEON[b.colorIdx];
-      return;
-    }
-    if (impact < 30) return;
-    this.wall.pulse = 1;
-    this.sound(0, impact, { octave: -1 });
+  onBallWall() {}
+
+  popBall(b, big = false) {
+    this.fx.burst(b.x, b.y, b.color, big ? 30 : 22, big ? 340 : 260, 0.7);
+    this.fx.burst(b.x, b.y, '#FFFFFF', 8, 180, 0.4);
+    this.sound(big ? 11 : 0, 800, { octave: big ? 1 : -1, pack: 'bass' });
+    b.dead = true;
   }
 
   breakTile(t, b) {
     t.dead = true;
     t.r = -1e9; // физика больше не видит плитку
     this.score++;
-    // Чем ближе к центру, тем выше нота
-    const k = 1 - (t.d - HOLE_R) / (FIELD_R - HOLE_R);
-    this.sound(Math.round(k * 11), 420);
+    // «Поп»: ноты идут вверх по гамме, пока шарик лопает плитки подряд
+    b.hits++;
+    this.sound(b.hits, 380, { pack: 'drops' });
     // Плитка вылетает куском: от шарика и чуть наружу, с вращением
     const dx = t.x - b.x, dy = t.y - b.y, dl = Math.hypot(dx, dy) || 1;
     const sp = 90 + Math.random() * 140;
@@ -146,7 +155,7 @@ export class SmashGame extends Game {
 
   onBeat() {
     this.wall.pulse = 1;
-    for (const b of this.world.balls) { b.vx *= 1.12; b.vy *= 1.12; b.flash = 1; }
+    for (const b of this.spirals) { b.speed = Math.min(SPEED_MAX, b.speed * 1.1); b.flash = 1; }
   }
 
   // ===== Каждый кадр =====
@@ -174,22 +183,39 @@ export class SmashGame extends Game {
     }
     this.debris = this.debris.filter((p) => p.age < p.life);
 
-    // Воронка: шарик, добравшийся до центра, проваливается и потом возвращается снаружи
-    for (const b of [...this.world.balls]) {
-      const d = Math.hypot(b.x, b.y);
-      if (d < HOLE_R * 0.75) {
-        this.fx.burst(b.x, b.y, b.color, 18, 260, 0.6);
-        this.sound(11, 700, { octave: 1 });
-        this.world.removeBall(b);
-        this.respawn.push(0.9);
-      } else if (d < HOLE_R * 1.6) {
-        // Лёгкое притяжение у края воронки
-        b.vx -= (b.x / d) * 600 * dt; b.vy -= (b.y / d) * 600 * dt;
+    // Шарики на спирали
+    for (const b of this.spirals) {
+      b.born += dt;
+      b.flash = Math.max(0, b.flash - dt * 3);
+      const steps = Math.max(1, Math.ceil((b.speed * dt) / 6));
+      const h = dt / steps;
+      for (let i = 0; i < steps && !b.dead; i++) {
+        // По кругу со скоростью speed и понемногу к центру — получается спираль
+        b.a += (b.dir * b.speed * h) / Math.max(b.R, 40);
+        b.R -= b.speed * SPIRAL * h;
+        this.place(b);
+        b.vx = -Math.sin(b.a) * b.speed * b.dir; b.vy = Math.cos(b.a) * b.speed * b.dir;
+        for (const t of this.tiles) {
+          if (t.dead) continue;
+          const dx = t.x - b.x, dy = t.y - b.y;
+          if (dx * dx + dy * dy < (b.r + t.r) * (b.r + t.r)) {
+            this.breakTile(t, b);
+            b.speed *= DRAG;
+            b.flash = 0.45; // ярче свечение, но цвет остаётся
+          }
+        }
+        if (b.R < HOLE_R * 0.8) this.popBall(b, true);               // упал в воронку
+        else if (b.speed < b.start * POP_AT) this.popBall(b);       // выдохся — лопается
       }
     }
-    this.respawn = this.respawn.map((s) => s - dt);
-    while (this.respawn.length && this.respawn[0] <= 0) { this.respawn.shift(); this.addEdgeBall(); }
-    if (!this.world.balls.length && !this.respawn.length) this.addEdgeBall();
+    const popped = this.spirals.filter((b) => b.dead).length;
+    if (popped) {
+      this.spirals = this.spirals.filter((b) => !b.dead);
+      for (let i = 0; i < popped; i++) this.respawn.push(0.5);
+    }
+    this.respawn = this.respawn.map((t) => t - dt);
+    while (this.respawn.length && this.respawn[0] <= 0) { this.respawn.shift(); this.addSpiralBall(); }
+    if (!this.spirals.length && !this.respawn.length) this.addSpiralBall();
 
     // Поле пустое — собираем заново
     if (!this.tiles.length) {
@@ -198,11 +224,6 @@ export class SmashGame extends Game {
       if (this.rebuildIn <= 0) {
         this.rebuildIn = 0;
         this.buildField();
-        // Шарики, оказавшиеся внутри поля, переносим наружу
-        for (const b of this.world.balls) {
-          const d = Math.hypot(b.x, b.y) || 1;
-          if (d < FIELD_R + BALL_R + 4) { const k2 = (FIELD_R + 40) / d; b.x *= k2; b.y *= k2; }
-        }
       }
     }
   }
@@ -284,6 +305,14 @@ export class SmashGame extends Game {
     ctx.globalAlpha = 1;
   }
 }
+
+SmashGame.prototype.drawBalls = function drawSpiralBalls(ctx) {
+  for (const b of this.spirals) {
+    // Пока шарик быстрый — яркий, к концу тускнеет и чуть сжимается
+    const k = Math.min(1, (b.speed / b.start - POP_AT) / (1 - POP_AT));
+    drawBall(ctx, { ...b, r: b.r * (0.75 + 0.25 * k) });
+  }
+};
 
 export class HoneycombGame extends SmashGame {
   constructor(o = {}) { super({ ...o, layout: 'hex' }); }
