@@ -8,7 +8,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}),
   }).then((r) => r.json());
 
-  const send = (chat_id, text, extra = {}) => api('sendMessage', { chat_id, text, ...extra });
+  const send = (chat_id, text, extra = {}) => api('sendMessage', { chat_id, text, ...extra }).then((r) => { if (!r.ok) console.error('sendMessage', r.description); return r; });
 
   const STATS_BTN = '📊 Статистика';
 
