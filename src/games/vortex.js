@@ -1,78 +1,86 @@
-// «Вихрь»: шарик в центре радужных колец. Кольца крутятся, у каждого есть разрыв.
-// Удар о кольцо — нота, выход через разрыв — кольцо разбивается со звоном.
+// «Вихрь»: радужные кольца без конца плывут к центру, как воронка.
+// - Самое внутреннее кольцо сжимается до размера шарика и само исчезает.
+// - Шарик вылетел через отверстие — кольцо разбивается со звоном, внешние сдвигаются внутрь.
+// - Когда кольцо исчезло (любым способом), снаружи появляется новое — игра бесконечная.
 
 import { Game } from './base.js';
-import { neonStroke, withAlpha } from '../render/fx.js';
+import { neonStroke } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 22;           // круг чуть шире экрана, сверху и снизу — тёмное поле
-const INNER_R = 44;         // радиус первого кольца
-const STEP = 18;            // расстояние между кольцами
-const COLOR_SPAN = 22;      // палитра от центра до последнего кольца
-const SHRINK = STEP;        // разбили кольцо — весь круг сжимается на один шаг (первое целое кольцо встаёт на место разбитого)
+const RINGS = 22;        // сколько колец одновременно (круг чуть шире экрана)
+const STEP = 18;         // расстояние между кольцами
+const MIN_R = 9;         // до такого радиуса сжимается внутреннее кольцо (≈ размер шарика), потом исчезает
+const DRIFT = 0.3;       // скорость «воронки»: колец в секунду, уходящих в центр сами по себе
+const BALL_R = 5.5;
+const COLOR_SPAN = 22;   // столько колец занимает палитра, дальше — обратно
+const FADE_IN = 0.6;     // секунды, за которые проявляется новое кольцо снаружи
+const GAP_LEN = 26;      // длина отверстия (шарик — 11)
+const GAP_MAX = 0.8;     // максимальный угол отверстия у самых маленьких колец
 
 export class VortexGame extends Game {
   setup() {
-    this.padding = 1.04; // кольца крупные, почти от края до края
+    this.padding = 1.04;
     this.world.gravity = 0;
     this.world.minSpeed = 260;
     this.world.maxSpeed = 900;
     this.world.ballCollisions = true;
-    this.maxBalls = 6;
-    this.reset();
-  }
-
-  reset() {
-    this.world.arcs = [];
-    this.world.balls = [];
+    this.maxBalls = 4;
+    this.serial = 0;   // номер следующего кольца — от него зависят цвет, вращение, наклон разрыва
+    this.phase = 0;    // 0..1 — насколько внутреннее кольцо уже «уплыло» к центру
     this.rings = [];
-    for (let i = 0; i < RINGS; i++) {
-      const R = INNER_R + i * STEP;
-      // Разрыв примерно одной длины на всех кольцах (на внешних — меньший угол)
-      const gap = Math.max(0.28, 34 / R);
-      const arc = {
-        cx: 0, cy: 0, R, baseR: R, w: 4.5,
-        start: 0, len: TAU - gap,
-        // Разрывы выстроены спиралью — как в залипательных роликах
-        rot: i * 0.42,
-        // Внешние кольца крутятся не быстрее внутренних — иначе края экрана мельтешат
-        spin: (i % 2 ? -1 : 1) * (0.35 + (i % COLOR_SPAN) * 0.035),
-        data: { note: RINGS - i, ring: i },
-        color: '#FFFFFF', // задаётся палитрой ниже
-        pulse: 0,
-      };
-      this.rings.push(arc);
-      this.world.arcs.push(arc);
+    this.world.arcs = this.rings; // физика видит те же кольца
+    for (let k = 0; k < RINGS; k++) {
+      const r = this.makeRing();
+      r.R = this.targetR(k);
+      r.alpha = 1;
     }
-    this.shrink = 0;      // на сколько должны сузиться кольца
-    this.shrinkAnim = 0;  // плавная версия — кольца сжимаются постепенно
-    this.applyPalette();
     this.addCenterBall();
-    this.cleared = 0;
   }
 
-  /** Сменить цвета колец на лету. key — из src/render/palettes.js */
+  /** Где должно стоять кольцо номер k (0 — внутреннее). */
+  targetR(k) {
+    return MIN_R + (k + 1 - this.phase) * STEP;
+  }
+
+  makeRing() {
+    const n = this.serial++;
+    const ring = {
+      cx: 0, cy: 0, R: 0, w: 4.5,
+      start: 0, len: TAU - 0.5,
+      rot: n * 0.42,                                        // разрывы складываются в спираль
+      spin: (n % 2 ? -1 : 1) * (0.35 + (n % 12) * 0.035),  // соседние кольца крутятся в разные стороны
+      data: { note: 0, serial: n },
+      color: this.colorFor(n),
+      pulse: 0,
+      alpha: 0,
+    };
+    this.rings.push(ring);
+    return ring;
+  }
+
+  // ===== Цвета =====
+
   setPalette(key, custom) {
     this.palette = key;
     this.paletteCustom = custom;
-    this.applyPalette();
+    this._colors = null;
+    for (const r of this.rings) r.color = this.colorFor(r.data.serial);
   }
 
-  applyPalette() {
-    // Палитра идёт от центра до края ширины экрана, дальше — обратно (туда-сюда),
-    // поэтому кольца у верха и низа экрана продолжают тот же плавный переход
-    const colors = paletteColors(this.palette || 'rainbow', COLOR_SPAN, this.paletteCustom);
+  colorFor(serial) {
+    if (!this._colors) this._colors = paletteColors(this.palette || 'rainbow', COLOR_SPAN, this.paletteCustom);
+    // Туда-обратно по палитре, чтобы цвета текли без резких скачков
     const period = (COLOR_SPAN - 1) * 2;
-    this.rings.forEach((r, i) => {
-      const k = i % period;
-      r.color = colors[k < COLOR_SPAN ? k : period - k];
-    });
+    const k = serial % period;
+    return this._colors[k < COLOR_SPAN ? k : period - k];
   }
+
+  // ===== Шарики =====
 
   addCenterBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, r: 5.5, color: '#FFFFFF' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, r: BALL_R, color: '#FFFFFF' });
   }
 
   tap() {
@@ -92,31 +100,39 @@ export class VortexGame extends Game {
     for (const b of this.world.balls) { b.vx *= 1.15; b.vy *= 1.15; b.flash = 1; }
   }
 
+  // ===== Каждый кадр =====
+
   tick(dt) {
-    // Плавное сужение после разбитого кольца
-    this.shrinkAnim += (this.shrink - this.shrinkAnim) * Math.min(1, dt * 4);
-    for (const r of this.rings) {
-      if (r.broken) continue;
-      r.R = r.baseR - this.shrinkAnim;
-      // Разрыв всегда примерно одной длины, даже когда кольцо сжалось
-      r.len = TAU - Math.max(0.28, 34 / r.R);
+    // Воронка: все кольца понемногу плывут к центру
+    this.phase += DRIFT * dt;
+    if (this.phase >= 1) {
+      this.phase -= 1;
+      this.vanishInner();
+    }
+
+    this.rings.forEach((r, k) => {
+      // Плавно догоняем своё место (резко сдвигаться нельзя — шарик проскочит сквозь стенку)
+      r.R += (this.targetR(k) - r.R) * Math.min(1, dt * 5);
+      // Отверстие одной длины (чуть шире шарика) на любом кольце, у маленьких — не больше 0,8 рад
+      r.len = TAU - Math.min(GAP_MAX, Math.max(0.28, GAP_LEN / r.R));
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
-    }
-    // Кольцо разбито, как только центр шарика оказался снаружи кольца.
-    // (Стенка не пускает шарик сквозь себя, значит снаружи он мог оказаться только через отверстие.)
-    for (const r of this.rings) {
-      if (r.broken) continue;
+      r.alpha = Math.min(1, r.alpha + dt / FADE_IN);
+      r.data.note = RINGS - k;
+    });
+
+    // Кольцо разбито, как только центр шарика оказался снаружи кольца
+    for (const r of [...this.rings]) {
       if (this.world.balls.some((b) => Math.hypot(b.x, b.y) > r.R + r.w / 2 + 0.5)) this.breakRing(r);
     }
-    // Шарик, который вылетел за последнее целое кольцо, свободен: он гаснет и исчезает
+
+    // Шарик снаружи последнего кольца гаснет и исчезает
+    const outer = this.rings[this.rings.length - 1];
     for (const b of this.world.balls) {
       const d = Math.hypot(b.x, b.y);
-      const outside = !this.rings.some((r) => !r.broken && r.R > d);
-      if (outside && !b.data.escaping) {
+      if (outer && d > outer.R && !b.data.escaping) {
         b.data.escaping = 0.35;
         this.fx.burst(b.x, b.y, '#FFFFFF', 14, 260, 0.5);
-        this.fx.ring(b.x, b.y, '#FFFFFF', 30, 0.4);
       }
       if (b.data.escaping) {
         b.data.escaping -= dt;
@@ -125,18 +141,48 @@ export class VortexGame extends Game {
       this.unstick(b, d, dt);
     }
     this.world.balls = this.world.balls.filter((b) => !(b.data.escaping <= 0) && Math.hypot(b.x, b.y) < 900);
-    // Если всё разбито или шариков не осталось — начинаем заново
-    const left = this.rings.filter((r) => !r.broken).length;
-    if (left === 0 || this.world.balls.length === 0) {
-      this._resetIn = (this._resetIn ?? 1.2) - dt;
-      if (this._resetIn <= 0) { this._resetIn = null; this.reset(); }
+
+    // Шариков не осталось — через секунду новый в центре
+    if (this.world.balls.length === 0) {
+      this._respawnIn = (this._respawnIn ?? 1) - dt;
+      if (this._respawnIn <= 0) { this._respawnIn = null; this.addCenterBall(); }
     }
   }
 
-  /** Если шарик завис прямо в отверстии кольца дольше полсекунды — выталкиваем его наружу. */
+  /** Внутреннее кольцо сжалось до размера шарика — оно тихо исчезает, снаружи появляется новое. */
+  vanishInner() {
+    const r = this.rings[0];
+    if (!r) return;
+    this.rings.shift();
+    this.score++;
+    this.fx.burst(0, 0, r.color, 10, 120, 0.5);
+    this.fx.ring(0, 0, r.color, 30, 0.5);
+    this.sound(r.data.note + 4, 380);
+    this.addOuter();
+  }
+
+  /** Шарик вылетел через отверстие — кольцо разбивается, внешние сдвигаются внутрь. */
+  breakRing(r) {
+    const i = this.rings.indexOf(r);
+    if (i < 0) return;
+    this.rings.splice(i, 1);
+    this.score += 10;
+    this.fx.shatterArc(0, 0, r.R, r.rot, r.len, r.color, 46);
+    this.sound(r.data.note + 7, 900, { octave: 0 });
+    this.sound(r.data.note + 9, 700);
+    this.addOuter();
+  }
+
+  addOuter() {
+    const r = this.makeRing();
+    r.R = this.targetR(this.rings.length - 1);
+    r.alpha = 0; // проявляется постепенно
+  }
+
+  /** Если шарик завис прямо в отверстии дольше полсекунды — выталкиваем его наружу. */
   unstick(b, d, dt) {
     const inGap = this.rings.some((r) => {
-      if (r.broken || Math.abs(d - r.R) > b.r + r.w) return false;
+      if (Math.abs(d - r.R) > b.r + r.w) return false;
       const a = (((Math.atan2(b.y, b.x) - r.rot) % TAU) + TAU) % TAU;
       return a > r.len;
     });
@@ -149,30 +195,15 @@ export class VortexGame extends Game {
     }
   }
 
-  breakRing(r) {
-    r.broken = true;
-    this.shrink += SHRINK; // все оставшиеся кольца чуть сужаются
-    const i = this.world.arcs.indexOf(r);
-    if (i >= 0) this.world.arcs.splice(i, 1);
-    this.score += 10;
-    this.fx.shatterArc(0, 0, r.R, r.rot, r.len, r.color, 46);
-    this.sound(r.data.note + 7, 900, { octave: 0 });
-    this.sound(r.data.note + 9, 700);
-  }
-
   drawWalls(ctx) {
-    for (const r of this.rings) {
-      if (r.broken) continue;
-      const color = this.react.color ? `hsl(${(this.hueShift + r.data.ring * 28) % 360},92%,60%)` : r.color;
+    this.rings.forEach((r, k) => {
+      const color = this.react.color ? `hsl(${(this.hueShift + k * 28) % 360},92%,60%)` : r.color;
+      ctx.globalAlpha = r.alpha;
       neonStroke(ctx, color, r.w * (1 + r.pulse * 0.12), () => {
         ctx.beginPath();
         ctx.arc(0, 0, r.R, r.rot, r.rot + r.len);
       }, 0.7 + r.pulse * 0.45);
-    }
-    // Тёмный центр
-    ctx.fillStyle = withAlpha('#1A1740', 0.9);
-    ctx.beginPath();
-    ctx.arc(0, 0, 30, 0, TAU);
-    ctx.fill();
+    });
+    ctx.globalAlpha = 1;
   }
 }
