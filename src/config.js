@@ -1,4 +1,4 @@
 // Настройки подключения к серверу (Railway).
 // Пока адрес пустой, игра работает полностью без сервера: без статистики и без выключения игр.
 
-export const API_URL = '';
+export const API_URL = 'https://vihr-app-production.up.railway.app';
