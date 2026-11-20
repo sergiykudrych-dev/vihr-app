@@ -8,17 +8,17 @@ import { neonStroke } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 16;        // сколько колец по умолчанию (круг чуть шире экрана)
+const RINGS = 13;        // сколько колец по умолчанию (круг чуть шире экрана)
 const RINGS_MIN = 3;
 const RINGS_MAX = 100;
-const STEP = 27;         // расстояние между кольцами
+const STEP = 34;         // расстояние между кольцами
 const MIN_R = 9;         // до такого радиуса сжимается внутреннее кольцо (≈ размер шарика), потом исчезает
 const DRIFT = 0.14;      // скорость «воронки»: колец в секунду, уходящих в центр сами по себе
 const BALL_R = 7.5;
 const COLOR_SPAN = 22;   // столько колец занимает палитра, дальше — обратно
 const FADE_IN = 0.6;     // секунды, за которые проявляется новое кольцо снаружи
-const GAP_LEN = 26;      // длина отверстия (шарик — 11)
-const GAP_MAX = 0.8;     // максимальный угол отверстия у самых маленьких колец
+const GAP_LEN = 44;      // длина отверстия (шарик — 11)
+const GAP_MAX = 1.2;     // максимальный угол отверстия у самых маленьких колец
 
 export class VortexGame extends Game {
   setup() {
@@ -132,7 +132,7 @@ export class VortexGame extends Game {
       // Плавно догоняем своё место (резко сдвигаться нельзя — шарик проскочит сквозь стенку)
       r.R += (this.targetR(k) - r.R) * Math.min(1, dt * 5);
       // Отверстие одной длины (чуть шире шарика) на любом кольце, у маленьких — не больше 0,8 рад
-      r.len = TAU - Math.min(GAP_MAX, Math.max(0.28, GAP_LEN / r.R));
+      r.len = TAU - Math.min(GAP_MAX, Math.max(0.55, GAP_LEN / r.R));
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
       r.alpha = Math.min(1, r.alpha + dt / FADE_IN);
