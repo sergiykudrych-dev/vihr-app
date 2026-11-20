@@ -1,5 +1,6 @@
 // Проверка сервера: node test.js (нужен DATABASE_URL тестовой базы)
 import { createHmac } from 'node:crypto';
+process.env.VIHR_NO_START = '1';
 process.env.BOT_TOKEN = '123:TEST';
 process.env.ADMIN_IDS = '615166297';
 process.env.ALLOWED_ORIGIN = 'https://example.test';

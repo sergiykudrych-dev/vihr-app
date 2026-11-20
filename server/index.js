@@ -107,9 +107,15 @@ export function createServer() {
   });
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
-  await migrate();
-  createServer().listen(PORT, () => console.log(`Сервер на порту ${PORT}`));
+// Запуск. В тестах (test.js) сервер импортируется и не стартует сам.
+if (!process.env.VIHR_NO_START) {
   process.on('unhandledRejection', (e) => console.error('unhandled', e && e.message)); // бот не должен ронять сервер
+  try {
+    await migrate();
+    console.log('База готова');
+  } catch (e) {
+    console.error('Не удалось подключиться к базе. Проверьте DATABASE_URL:', e.message);
+  }
+  createServer().listen(PORT, '0.0.0.0', () => console.log(`Сервер на порту ${PORT}`));
   startBot({ token: BOT_TOKEN, webAppUrl: WEBAPP_URL, adminIds: ADMIN_IDS });
 }
