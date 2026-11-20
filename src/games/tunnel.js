@@ -7,6 +7,7 @@
 import { Game } from './base.js';
 import { neonStroke, withAlpha, hsl } from '../render/fx.js';
 import { PALETTES, mixStops } from '../render/palettes.js';
+import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const TOTAL = 900;        // сколько колец в начале
@@ -18,6 +19,12 @@ const SPIN = 0.55;        // скорость вращения колец
 const SPEED = 560;        // скорость шарика
 const BALL_R = 6;
 const COLOR_PERIOD = 70;  // через сколько колец повторяется палитра
+
+// Музыка под шарик: пробил кольцо — громче, ударился о стенку — тише
+const MUSIC_START = 0.45; // громкость трека в начале игры (доля от настройки «Трек»)
+const MUSIC_MIN = 0.12;   // тише этого трек не становится
+const MUSIC_UP = 0.08;    // + за каждое пробитое кольцо
+const MUSIC_DOWN = 0.07;  // − за каждый удар о стенку
 
 function rand(i) {
   // Детерминированный «случай» для кольца i — чтобы неровность не мигала
@@ -36,6 +43,7 @@ export class TunnelGame extends Game {
   }
 
   reset() {
+    this.musicLevel = MUSIC_START;
     this.c = 0;              // индекс текущего (центрального) кольца
     this.cAnim = 0;          // плавная версия — для «затягивания»
     this.rot = Math.random() * TAU;
@@ -133,6 +141,7 @@ export class TunnelGame extends Game {
     // Кольца «затянулись» к центру — ещё раз проверяем, что шарик внутри текущего
     for (const b of this.world.balls) this.moveBall(b, 0);
     this.pulse = Math.max(0, this.pulse - dt * 2.5);
+    audio.setTrackMix(this.musicLevel);
     this.fx.update(dt);
     if (this.c >= TOTAL) {
       this._resetIn = (this._resetIn ?? 2) - dt;
@@ -172,12 +181,14 @@ export class TunnelGame extends Game {
         this.combo = 0;
         this.pulse = Math.max(this.pulse, 0.5);
         this.sound(Math.floor(((a + Math.PI) / TAU) * 8), 600);
+        this.musicLevel = Math.max(MUSIC_MIN, this.musicLevel - MUSIC_DOWN);
       }
       return;
     }
   }
 
   passRing(b) {
+    this.musicLevel = Math.min(1, this.musicLevel + MUSIC_UP);
     const color = this.colorOf(this.c);
     this.fx.burst(b.x, b.y, color, 3, 160, 0.35);
     this.c++;
@@ -227,7 +238,7 @@ export class TunnelGame extends Game {
       neonStroke(ctx, main, 4 + this.pulse * 1.5, () => {
         ctx.beginPath();
         ctx.arc(0, 0, R, start + this.ringGap(this.c), start + TAU);
-      }, 1 + this.pulse * 0.5);
+      }, (audio.musicPlaying ? 0.6 + this.musicLevel * 0.7 : 1) + this.pulse * 0.5); // под музыку кольцо светится ярче, когда трек громче
     }
 
     // Число в центре — сколько колец осталось

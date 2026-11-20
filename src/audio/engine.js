@@ -40,7 +40,7 @@ class AudioEngine {
       this.master.connect(this.compressor);
 
       this.trackGain = this.ctx.createGain();
-      this.trackGain.gain.value = this.trackVolume ?? 0.9;
+      this.trackGain.gain.value = (this.trackVolume ?? 0.9) * (this.trackMix ?? 1);
       this.trackGain.connect(this.compressor);
 
       this.analyser = this.ctx.createAnalyser();
@@ -56,7 +56,23 @@ class AudioEngine {
 
   setTrackVolume(v) {
     this.trackVolume = v;
-    if (this.trackGain) this.trackGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02);
+    this._applyTrackGain(0.02);
+  }
+
+  /**
+   * Множитель громкости трека от самой игры (0..1). Например, «Туннель»:
+   * шарик пробивает кольца — музыка громче, бьётся о стенку — тише.
+   */
+  setTrackMix(m) {
+    if (Math.abs((this.trackMix ?? 1) - m) < 0.005) return;
+    this.trackMix = m;
+    this._applyTrackGain(0.08);
+  }
+
+  _applyTrackGain(smooth) {
+    if (!this.trackGain) return;
+    const v = (this.trackVolume ?? 0.9) * (this.trackMix ?? 1);
+    this.trackGain.gain.setTargetAtTime(v, this.ctx.currentTime, smooth);
   }
 
   setVolume(v) {

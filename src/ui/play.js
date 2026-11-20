@@ -150,6 +150,7 @@ export function enterPlay(id) {
   if (!found) { go('games'); return; }
   lastScore = -1;
   store.set('lastGame', id); // экран «Трек» предложит эту игру
+  audio.setTrackMix(1);
   const game = found.create();
   runner.setGame(game);
   setupPaletteFor(game);
@@ -166,6 +167,7 @@ export function enterPlay(id) {
 }
 
 export async function leavePlay() {
+  audio.setTrackMix(1); // игра могла приглушить трек — возвращаем громкость
   if (recorder && recorder.active) await recorder.stop();
   clearInterval(recTimer);
   $('#rec-time').hidden = true;
