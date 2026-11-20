@@ -17,7 +17,7 @@ const GAP = 0.95;         // ширина разрыва, рад (~55°)
 const TWIST = 0.042;      // поворот разрыва от кольца к кольцу — спираль закручена сильнее
 const SPIN = 0.55;        // вращение спирали, рад/с
 const BALL_R = 8.5;
-const MIN_BOUNCE = 165;   // минимальная скорость отлёта от линии после удара
+const MIN_BOUNCE = 260;   // минимальная скорость отлёта от линии после удара
 const GRAVITY = 155;      // шарик всё время тянет вниз с одной и той же силой
 
 export class SpiralGame extends Game {
@@ -26,7 +26,7 @@ export class SpiralGame extends Game {
     this.world.gravity = GRAVITY;
     this.world.minSpeed = 0;     // шарик летит по траектории под действием притяжения вниз
     this.world.maxSpeed = 1200;
-    this.world.restitution = 0.88; // отскок сильнее — шарик отбивается от линий
+    this.world.restitution = 0.97; // отскок сильнее — шарик отбивается от линий
     this.world.ballCollisions = true;
     this.maxBalls = 1;   // всегда ровно один шарик
     this.ringCount = RINGS;
