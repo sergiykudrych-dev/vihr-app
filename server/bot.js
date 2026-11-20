@@ -15,9 +15,9 @@ export function startBot({ token, webAppUrl, adminIds }) {
     const text = (msg.text || '').trim();
     if (text.startsWith('/start')) {
       const markup = webAppUrl
-        ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Играть', web_app: { url: webAppUrl } }]] } }
+        ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Play', web_app: { url: webAppUrl } }]] } }
         : {};
-      await send(chat, 'Вихрь — игры-залипашки, которые звучат от касаний и танцуют под твою музыку.', markup);
+      await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', markup);
     } else if (text.startsWith('/stats') && adminIds.includes(msg.from.id)) {
       const s = await stats();
       const top = s.top_games.slice(0, 5).map((g) => `• ${g.game}: ${g.plays}`).join('\n') || '—';
