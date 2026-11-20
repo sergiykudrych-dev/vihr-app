@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0B0A14">
+  <meta name="description" content="Вихрь — игры-залипашки, которые звучат от касаний и танцуют под твою музыку.">
+  <title>Вихрь</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="assets/fonts/inter/inter-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/fonts.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/screens.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- 1. Каталог игр -->
+  <section class="screen" data-screen="games" aria-labelledby="games-title">
+    <header class="screen-head">
+      <h1 id="games-title">Вихрь</h1>
+    </header>
+
+    <article class="hero">
+      <div class="hero__body">
+        <span class="badge">Игра дня</span>
+        <h2 id="hero-title">Вихрь</h2>
+        <p class="muted small" id="hero-sub">Разбей радужные кольца</p>
+        <a class="btn btn--primary" id="hero-play" href="#play-vortex">Играть</a>
+      </div>
+      <img class="hero__art" id="hero-art" src="assets/img/games/vortex.svg" alt="">
+    </article>
+
+    <div class="chips" id="categories" role="group" aria-label="Категории"></div>
+    <div class="games-grid" id="games-grid"></div>
+  </section>
+
+  <!-- 2. Игровой экран: почти пустой -->
+  <section class="screen screen--game" data-screen="play" aria-label="Игра">
+    <canvas class="game-canvas" id="game-canvas" aria-label="Игровое поле"></canvas>
+    <div class="game-ui">
+      <a class="icon-btn icon-btn--glass game-back" href="#games" aria-label="Назад к играм">
+        <svg class="icon" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-back"></use></svg>
+      </a>
+      <div class="game-score" id="game-score" aria-live="off">0</div>
+      <p class="game-hint" id="game-hint"></p>
+      <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
+      <span class="rec-time" id="rec-time" hidden>0:00</span>
+      <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Записать видео"><span></span></button>
+    </div>
+  </section>
+
+  <!-- 3. Звуки -->
+  <section class="screen" data-screen="sounds" aria-labelledby="sounds-title">
+    <header>
+      <h1 id="sounds-title">Звуки</h1>
+      <p class="muted">Что играет, когда шарики касаются друг друга</p>
+    </header>
+    <div class="field" style="gap: 10px" id="packs" role="group" aria-label="Наборы звуков"></div>
+    <div class="field">
+      <span class="label" id="scale-label">Гамма</span>
+      <div class="segmented" id="scales" role="group" aria-labelledby="scale-label"></div>
+    </div>
+    <div class="slider-row">
+      <label class="label" for="volume">Громкость</label>
+      <input id="volume" type="range" min="0" max="100" step="1">
+      <output for="volume" id="volume-out"></output>
+    </div>
+  </section>
+
+  <!-- 4. Мой трек -->
+  <section class="screen" data-screen="track" aria-labelledby="track-title">
+    <header>
+      <h1 id="track-title">Мой трек</h1>
+      <p class="muted">Игра будет реагировать на твою музыку</p>
+    </header>
+
+    <label class="upload">
+      <span class="upload__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-upload"></use></svg></span>
+      <span>
+        <span class="upload__title" id="upload-title">Загрузить трек</span><br>
+        <span class="muted small">MP3, WAV или M4A из файлов телефона</span>
+      </span>
+      <input type="file" id="track-file" accept="audio/*">
+    </label>
+
+    <div class="card player" id="player" hidden>
+      <div class="player__top">
+        <button class="icon-btn icon-btn--accent" id="track-toggle" aria-label="Слушать трек">
+          <svg class="icon icon--sm" aria-hidden="true"><use id="track-toggle-icon" href="assets/img/icons/sprite.svg#i-play"></use></svg>
+        </button>
+        <div style="flex: 1; min-width: 0">
+          <div class="player__name" id="track-name"></div>
+          <div class="muted small" id="track-meta"></div>
+        </div>
+        <button class="icon-btn icon-btn--glass" id="track-remove" aria-label="Убрать трек">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-trash"></use></svg>
+        </button>
+      </div>
+      <canvas class="wave" id="track-wave" aria-hidden="true"></canvas>
+    </div>
+
+    <span class="label">Как игра реагирует на музыку</span>
+    <div id="reactions"></div>
+
+    <div class="slider-row">
+      <label class="label" for="sensitivity">Чувствительность</label>
+      <input id="sensitivity" type="range" min="0" max="100" step="1">
+      <output for="sensitivity" id="sensitivity-out"></output>
+    </div>
+
+    <a class="btn btn--primary btn--block" id="track-play-game" href="#play-vortex">Играть под этот трек</a>
+  </section>
+
+  <!-- 5. Конструктор -->
+  <section class="screen" data-screen="builder" aria-labelledby="builder-title">
+    <header class="screen-head">
+      <h1 id="builder-title" style="font-size: 26px">Конструктор</h1>
+      <button class="btn btn--primary" id="builder-save">Сохранить</button>
+    </header>
+
+    <div class="builder-preview">
+      <canvas id="builder-canvas" aria-label="Предпросмотр игры"></canvas>
+      <span class="builder-preview__tag">Предпросмотр</span>
+    </div>
+
+    <div class="segmented" role="group" aria-label="Разделы конструктора" id="builder-tabs">
+      <button data-panel="arena" aria-pressed="true">Арена</button>
+      <button data-panel="balls" aria-pressed="false">Шарики</button>
+      <button data-panel="rules" aria-pressed="false">Правила</button>
+    </div>
+
+    <div class="panel is-active" data-panel="arena">
+      <div class="field">
+        <label class="label" for="b-name">Название</label>
+        <input type="text" id="b-name" maxlength="24">
+      </div>
+      <div class="field">
+        <span class="label" id="b-arena-label">Форма</span>
+        <div class="segmented" id="b-arena" role="group" aria-labelledby="b-arena-label"></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-row__body"><div class="toggle-row__title">Разрыв в стенке</div><div class="muted small">Шарики могут вылететь</div></div>
+        <button class="switch" role="switch" id="b-gap" aria-checked="false" aria-label="Разрыв в стенке"></button>
+      </div>
+      <div class="slider-row"><label class="label" for="b-spin">Вращение</label><input id="b-spin" type="range" min="-20" max="20" step="1"><output id="b-spin-out"></output></div>
+    </div>
+
+    <div class="panel" data-panel="balls">
+      <div class="slider-row"><label class="label" for="b-balls">Количество</label><input id="b-balls" type="range" min="1" max="12" step="1"><output id="b-balls-out"></output></div>
+      <div class="slider-row"><label class="label" for="b-size">Размер</label><input id="b-size" type="range" min="6" max="30" step="1"><output id="b-size-out"></output></div>
+      <div class="slider-row"><label class="label" for="b-gravity">Гравитация</label><input id="b-gravity" type="range" min="0" max="1200" step="50"><output id="b-gravity-out"></output></div>
+      <div class="slider-row"><label class="label" for="b-bounce">Упругость</label><input id="b-bounce" type="range" min="50" max="100" step="5"><output id="b-bounce-out"></output></div>
+    </div>
+
+    <div class="panel" data-panel="rules">
+      <div class="card rule">
+        <div class="rule__line"><span class="rule__key">Когда</span><span class="label" style="font-size: 15px">Шарик касается шарика</span></div>
+        <div class="rule__divider"></div>
+        <div class="rule__line"><span class="rule__key">Тогда</span><div class="rule__chips" id="r-ballBall"></div></div>
+      </div>
+      <div class="card rule">
+        <div class="rule__line"><span class="rule__key">Когда</span><span class="label" style="font-size: 15px">Шарик касается стенки</span></div>
+        <div class="rule__divider"></div>
+        <div class="rule__line"><span class="rule__key">Тогда</span><div class="rule__chips" id="r-ballWall"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabbar" aria-label="Разделы">
+    <a href="#games" data-tab="games"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-grid"></use></svg>Игры</a>
+    <a href="#sounds" data-tab="sounds"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-sound"></use></svg>Звуки</a>
+    <a href="#builder" data-tab="builder"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-plus-circle"></use></svg>Создать</a>
+    <a href="#track" data-tab="track"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg#i-music"></use></svg>Трек</a>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

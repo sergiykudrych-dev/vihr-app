@@ -1,0 +1,66 @@
+/* Дизайн-токены: цвета, размеры, радиусы. Меняй здесь — меняется всё приложение. */
+:root {
+  /* Фон и поверхности */
+  --c-bg: #0B0A14;
+  --c-bg-game: #05040C;
+  --c-surface: #15142A;
+  --c-surface-2: #1E1C3A;
+  --c-nav: #100F1F;
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border-strong: rgba(255, 255, 255, 0.16);
+  --c-dashed: rgba(255, 255, 255, 0.28);
+
+  /* Текст */
+  --c-text: #F2F1FA;
+  --c-text-2: #A8A6C8;
+  --c-text-3: #9A98BD;
+  --c-on-accent: #0B0A14;
+
+  /* Акцент (меняется в настройках) */
+  --c-accent: #22E4F5;
+
+  /* Неоновая палитра для игр */
+  --neon-red: #FF4D5A;
+  --neon-orange: #FF7A45;
+  --neon-yellow: #FFD84A;
+  --neon-green: #4BF28A;
+  --neon-teal: #2EE6C8;
+  --neon-cyan: #22E4F5;
+  --neon-blue: #3B9BFF;
+  --neon-violet: #8B6CFF;
+  --neon-pink: #FF4FD8;
+  --neon-rec: #FF4D5A;
+
+  /* Шрифт */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 14px;
+  --fs-base: 15px;
+  --fs-lg: 16px;
+  --fs-xl: 22px;
+  --fs-2xl: 30px;
+
+  /* Отступы и радиусы */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Размеры */
+  --tap: 44px;
+  --nav-h: 72px;
+  --app-max: 480px;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}

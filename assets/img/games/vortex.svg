@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" stroke-width="2.4">
+  <circle cx="80" cy="80" r="14" stroke="#FF7A45" stroke-dasharray="68.6 19.4" transform="rotate(-50 80 80)"/>
+  <circle cx="80" cy="80" r="20" stroke="#FFA040" stroke-dasharray="98.0 27.6" transform="rotate(-40 80 80)"/>
+  <circle cx="80" cy="80" r="26" stroke="#FFC93D" stroke-dasharray="127.4 35.9" transform="rotate(-30 80 80)"/>
+  <circle cx="80" cy="80" r="32" stroke="#E3E64A" stroke-dasharray="156.8 44.2" transform="rotate(-20 80 80)"/>
+  <circle cx="80" cy="80" r="38" stroke="#A5EF55" stroke-dasharray="186.2 52.5" transform="rotate(-10 80 80)"/>
+  <circle cx="80" cy="80" r="44" stroke="#4BF28A" stroke-dasharray="215.6 60.8" transform="rotate(0 80 80)"/>
+  <circle cx="80" cy="80" r="50" stroke="#2EE6C8" stroke-dasharray="245.0 69.1" transform="rotate(10 80 80)"/>
+  <circle cx="80" cy="80" r="56" stroke="#22D3F5" stroke-dasharray="274.4 77.4" transform="rotate(20 80 80)"/>
+  <circle cx="80" cy="80" r="62" stroke="#3B9BFF" stroke-dasharray="303.9 85.7" transform="rotate(30 80 80)"/>
+  <circle cx="80" cy="80" r="68" stroke="#6C7CFF" stroke-dasharray="333.3 94.0" transform="rotate(40 80 80)"/>
+  <circle cx="80" cy="80" r="74" stroke="#A56CFF" stroke-dasharray="362.7 102.3" transform="rotate(50 80 80)"/>
+  <circle cx="80" cy="80" r="7" fill="#1A1740" stroke="none"/>
+  <circle cx="80" cy="80" r="2.5" fill="#FFFFFF" stroke="none"/>
+</svg>

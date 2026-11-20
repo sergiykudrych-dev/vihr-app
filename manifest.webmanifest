@@ -1,0 +1,14 @@
+{
+  "name": "Вихрь",
+  "short_name": "Вихрь",
+  "description": "Игры-залипашки, которые звучат от касаний и танцуют под твою музыку",
+  "lang": "ru",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0A14",
+  "theme_color": "#0B0A14",
+  "icons": [
+    { "src": "assets/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

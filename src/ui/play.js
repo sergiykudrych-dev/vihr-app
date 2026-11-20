@@ -1,0 +1,99 @@
+// Игровой экран: почти пустой — игра по центру, счёт, прогресс трека и кнопка записи.
+
+import { $, toast } from './dom.js';
+import { Runner } from '../core/runner.js';
+import { Recorder, canRecord, saveVideo } from '../core/recorder.js';
+import { GAMES, CUSTOM_META } from '../games/registry.js';
+import { store } from '../core/store.js';
+import { track } from '../audio/track.js';
+import { audio } from '../audio/engine.js';
+import { go } from '../core/router.js';
+
+let runner = null;
+let recorder = null;
+let recTimer = 0;
+let lastScore = -1;
+
+export function findGame(id) {
+  const g = GAMES.find((x) => x.id === id);
+  if (g) return { meta: g, create: () => new g.Game() };
+  if (id && id.startsWith('custom-')) {
+    const cfg = store.data.customGames.find((c) => 'custom-' + c.id === id);
+    if (cfg) return { meta: { ...CUSTOM_META, title: cfg.name }, create: () => new CUSTOM_META.Game({ config: cfg }) };
+  }
+  return null;
+}
+
+export function initPlay() {
+  const canvas = $('#game-canvas');
+  // padding < 1 — арена меньше экрана, вокруг много пустого места
+  runner = new Runner(canvas, {
+    padding: 0.8,
+    onFrame: (game) => {
+      if (game.score !== lastScore) { lastScore = game.score; $('#game-score').textContent = game.score; }
+      const bar = $('#game-progress');
+      bar.hidden = !track.loaded;
+      if (track.loaded) $('#game-progress-bar').style.width = `${(track.progress * 100).toFixed(1)}%`;
+    },
+  });
+  runner.onTap = () => {
+    $('#game-hint').classList.add('is-hidden');
+    // Телефоны разрешают звук только после касания — запускаем трек на первом тапе
+    if (track.loaded && !track.playing && !runner.trackStarted) { runner.trackStarted = true; track.play(); }
+  };
+
+  recorder = new Recorder(canvas);
+  $('#rec-btn').addEventListener('click', toggleRecord);
+  if (!canRecord()) $('#rec-btn').hidden = true;
+}
+
+async function toggleRecord() {
+  const btn = $('#rec-btn');
+  if (recorder.active) {
+    clearInterval(recTimer);
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-label', 'Записать видео');
+    $('#rec-time').hidden = true;
+    const blob = await recorder.stop();
+    if (blob && blob.size) { await saveVideo(blob); toast('Видео сохранено'); }
+    return;
+  }
+  try {
+    recorder.start();
+  } catch (e) {
+    console.error(e);
+    toast('Запись не поддерживается в этом браузере');
+    return;
+  }
+  btn.setAttribute('aria-pressed', 'true');
+  btn.setAttribute('aria-label', 'Остановить запись');
+  const time = $('#rec-time');
+  time.hidden = false;
+  time.textContent = '0:00';
+  recTimer = setInterval(() => {
+    const s = Math.floor((performance.now() - recorder.startedAt) / 1000);
+    time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }, 250);
+}
+
+export function enterPlay(id) {
+  const found = findGame(id);
+  if (!found) { go('games'); return; }
+  lastScore = -1;
+  runner.setGame(found.create());
+  runner.resize();
+  runner.start();
+  const hint = $('#game-hint');
+  hint.textContent = found.meta.hint || 'Касайся экрана';
+  hint.classList.remove('is-hidden');
+  setTimeout(() => hint.classList.add('is-hidden'), 3500);
+  runner.trackStarted = false;
+  if (track.loaded && audio.ctx) { runner.trackStarted = true; track.play()?.catch?.(() => { runner.trackStarted = false; }); }
+}
+
+export async function leavePlay() {
+  if (recorder && recorder.active) await toggleRecord();
+  runner.stop();
+  runner.setGame(null);
+  track.pause();
+}
