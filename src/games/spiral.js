@@ -45,9 +45,12 @@ export class SpiralGame extends Game {
     this.w = Math.max(1.2, Math.min(3, step * 0.62));
     this.rings = [];
     for (let k = 0; k < n; k++) {
+      const R = INNER_R + k * step;
+      // Первые кольца маленькие и шарик в них не пролезал: разрыв там заметно шире, дальше сужается до обычного
+      const gap = Math.max(GAP, (BALL_R * 4.5) / R) + 0.9 * Math.max(0, 1 - k / 12);
       this.rings.push({
-        cx: 0, cy: 0, R: INNER_R + k * step, w: this.w,
-        start: 0, len: TAU - GAP, rot: k * TWIST + (this.rot0 || 0),
+        cx: 0, cy: 0, R, w: this.w,
+        start: 0, len: TAU - gap, rot: k * TWIST + (this.rot0 || 0),
         // spin: 0 — стенка не подталкивает шарик по кругу (вращается только рисунок)
         spin: 0, data: { note: k }, k, color: '#fff', glow: 0, alpha: 0, delay: k * 0.012,
       });
