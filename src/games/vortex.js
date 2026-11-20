@@ -74,10 +74,11 @@ export class VortexGame extends Game {
       r.rot += r.spin * dt;
       r.pulse = Math.max(0, r.pulse - dt * 3);
     }
-    // Кольцо разбито, когда шарик вылетел за него
+    // Кольцо разбито, как только центр шарика оказался снаружи кольца.
+    // (Стенка не пускает шарик сквозь себя, значит снаружи он мог оказаться только через отверстие.)
     for (const r of this.rings) {
       if (r.broken) continue;
-      if (this.world.balls.some((b) => Math.hypot(b.x, b.y) > r.R + r.w + b.r)) this.breakRing(r);
+      if (this.world.balls.some((b) => Math.hypot(b.x, b.y) > r.R + r.w / 2 + 0.5)) this.breakRing(r);
     }
     // Шарик, который вылетел за последнее целое кольцо, свободен: он гаснет и исчезает
     for (const b of this.world.balls) {
