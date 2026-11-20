@@ -10,21 +10,40 @@ export function startBot({ token, webAppUrl, adminIds }) {
 
   const send = (chat_id, text, extra = {}) => api('sendMessage', { chat_id, text, ...extra });
 
+  const STATS_BTN = '📊 Статистика';
+  const PLAY_BTN = '🌀 Play';
+
+  // Кнопки внизу чата: у админа — ещё и статистика
+  const keyboard = (isAdmin) => ({
+    reply_markup: {
+      keyboard: [
+        webAppUrl ? [{ text: PLAY_BTN, web_app: { url: webAppUrl } }] : [],
+        ...(isAdmin ? [[{ text: STATS_BTN }]] : []),
+      ].filter((row) => row.length),
+      resize_keyboard: true,
+      is_persistent: true,
+    },
+  });
+
+  async function sendStats(chat) {
+    const s = await stats();
+    const top = s.top_games.slice(0, 5).map((g) => `• ${g.game}: ${g.plays}`).join('\n') || '—';
+    await send(chat,
+      `📊 Статистика\nИгроков всего: ${s.players} (сегодня новых: ${s.new_today})\n` +
+      `Активных: сегодня ${s.dau}, за 7 дней ${s.wau}, за 30 дней ${s.mau}\n` +
+      `Среднее время игры: ${s.avg_sec} с\nВидео за 7 дней: ${s.videos_7d}\n` +
+      `Показов рекламы: сегодня ${s.ads_today}, за 7 дней ${s.ads_7d}\n\nТоп игр за 7 дней:\n${top}`,
+      keyboard(true));
+  }
+
   async function handle(msg) {
     const chat = msg.chat.id;
     const text = (msg.text || '').trim();
+    const isAdmin = adminIds.includes(msg.from && msg.from.id);
     if (text.startsWith('/start')) {
-      const markup = webAppUrl
-        ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Play', web_app: { url: webAppUrl } }]] } }
-        : {};
-      await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', markup);
-    } else if (text.startsWith('/stats') && adminIds.includes(msg.from.id)) {
-      const s = await stats();
-      const top = s.top_games.slice(0, 5).map((g) => `• ${g.game}: ${g.plays}`).join('\n') || '—';
-      await send(chat,
-        `📊 Статистика\nИгроков всего: ${s.players} (сегодня новых: ${s.new_today})\n` +
-        `Активных: сегодня ${s.dau}, за 7 дней ${s.wau}, за 30 дней ${s.mau}\n` +
-        `Среднее время игры: ${s.avg_sec} с\nВидео за 7 дней: ${s.videos_7d}\n\nТоп игр за 7 дней:\n${top}`);
+      await send(chat, 'Spinly Game is a collection of neon physics games that are oddly satisfying to watch and play. Tap Play to start.', keyboard(isAdmin));
+    } else if ((text.startsWith('/stats') || text === STATS_BTN) && isAdmin) {
+      await sendStats(chat);
     }
   }
 
