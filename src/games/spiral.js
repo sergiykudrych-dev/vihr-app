@@ -18,19 +18,20 @@ const TWIST = 0.042;      // поворот разрыва от кольца к 
 const SPIN = 0.55;        // вращение спирали, рад/с
 const BALL_R = 8.5;
 const MIN_BOUNCE = 260;   // минимальная скорость отлёта от линии после удара
-const GRAVITY = 155;      // шарик всё время тянет вниз с одной и той же силой
+const GRAVITY = 175;      // шарик всё время тянет вниз с одной и той же силой
 
 export class SpiralGame extends Game {
   setup() {
     this.padding = 1.04;
     this.world.gravity = GRAVITY;
     this.world.minSpeed = 0;     // шарик летит по траектории под действием притяжения вниз
-    this.world.maxSpeed = 1200;
+    this.world.maxSpeed = 1400;
     this.world.restitution = 0.97; // отскок сильнее — шарик отбивается от линий
     this.world.ballCollisions = true;
     this.maxBalls = 1;   // всегда ровно один шарик
     this.ringCount = RINGS;
     this.defaultPalette = 'amber';
+    this.dir = 1;          // направление вращения; меняется на обратное при каждом разбитом кольце
     this.dust = [];        // рассыпающиеся кольца
     this.rebuildIn = 0;
     this.build();
@@ -78,7 +79,7 @@ export class SpiralGame extends Game {
 
   addBall() {
     const a = Math.random() * TAU;
-    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 400, vy: -260, r: BALL_R, color: '#2EF0E0' });
+    this.world.addBall({ x: 0, y: 0, vx: Math.cos(a) * 450, vy: -290, r: BALL_R, color: '#2EF0E0' });
   }
 
   tap(x, y) {
@@ -106,6 +107,7 @@ export class SpiralGame extends Game {
 
   breakRing(r) {
     this.score++;
+    this.dir = -this.dir;   // каждое разбитое кольцо разворачивает вращение
     const i = this.world.arcs.indexOf(r);
     if (i >= 0) this.world.arcs.splice(i, 1);
     r.broken = true;
@@ -116,11 +118,11 @@ export class SpiralGame extends Game {
 
   tick(dt) {
     for (const r of this.rings) {
-      r.rot += SPIN * dt;
+      r.rot += SPIN * this.dir * dt;
       r.glow = Math.max(0, r.glow - dt * 3);
       if (r.alpha < 1) { r.delay -= dt; if (r.delay <= 0) r.alpha = Math.min(1, r.alpha + dt * 4); }
     }
-    this.rot0 = this.rings.length ? this.rings[0].rot : (this.rot0 || 0) + SPIN * dt;
+    this.rot0 = this.rings.length ? this.rings[0].rot : (this.rot0 || 0) + SPIN * this.dir * dt;
 
     // Шарик вышел за внутреннее целое кольцо — кольцо разбивается
     for (const b of this.world.balls) {
@@ -130,7 +132,7 @@ export class SpiralGame extends Game {
       }
     }
 
-    for (const p of this.dust) { p.age += dt; p.R += 18 * dt; p.rot += SPIN * dt; }
+    for (const p of this.dust) { p.age += dt; p.R += 18 * dt; p.rot += SPIN * this.dir * dt; }
     this.dust = this.dust.filter((p) => p.age < p.life);
 
     // Все кольца разбиты — собираем заново, шарики возвращаем в центр
