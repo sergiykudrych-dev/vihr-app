@@ -26,7 +26,7 @@ export class SmashGame extends Game {
     this.world.minSpeed = 300;
     this.world.maxSpeed = 820;
     this.world.ballCollisions = true;
-    this.maxBalls = 6;
+    this.maxBalls = 30;
     this.ringColor = this.layout === 'hex' ? '#F2B530' : '#2EF0D8';
     this.deco = this.layout === 'hex' ? [62, 102, 142, 182, 240] : [70, 115, 160, 205, 252];
     // Внешняя стенка — сплошное кольцо
