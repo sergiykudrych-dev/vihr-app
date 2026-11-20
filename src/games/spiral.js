@@ -17,6 +17,7 @@ const GAP = 0.95;         // ширина разрыва, рад (~55°)
 const TWIST = 0.042;      // поворот разрыва от кольца к кольцу — спираль закручена сильнее
 const SPIN = 0.55;        // вращение спирали, рад/с
 const BALL_R = 5.5;
+const MIN_BOUNCE = 120;   // минимальная скорость отлёта от линии после удара
 const GRAVITY = 55;       // шарик всё время тянет вниз с одной и той же силой
 
 export class SpiralGame extends Game {
@@ -88,7 +89,12 @@ export class SpiralGame extends Game {
 
   onBallWall(b, ring, impact) {
     // Трение о стенку: шарик не катается по кругу, а оседает вниз
-    b.vx *= 0.985; b.vy *= 0.985;
+    // Шарик не «прилипает» к линии: после удара он всегда отлетает от неё с заметной скоростью
+    const d = Math.hypot(b.x - ring.cx, b.y - ring.cy) || 1;
+    const sgn = d < ring.R ? -1 : 1;                  // куда смотрит нормаль: наружу или к центру
+    const nx = ((b.x - ring.cx) / d) * sgn, ny = ((b.y - ring.cy) / d) * sgn;
+    const vn = b.vx * nx + b.vy * ny;
+    if (vn < MIN_BOUNCE) { b.vx += (MIN_BOUNCE - vn) * nx; b.vy += (MIN_BOUNCE - vn) * ny; }
     if (impact < 25) return;
     ring.glow = 1;
     this.sound(ring.k, impact, { pack: 'glass' });
