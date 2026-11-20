@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0B0A14">
   <meta name="description" content="Вихрь — игры-залипашки, которые звучат от касаний и танцуют под твою музыку.">
   <title>Вихрь</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="assets/fonts/inter/inter-cyrillic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -14,7 +15,7 @@
 <script type="importmap">
 {
   "imports": {
-    "./src/audio/engine.js": "./src/audio/engine.js?v=b5e033fa",
+    "./src/audio/engine.js": "./src/audio/engine.js?v=c75e76a5",
     "./src/audio/packs.js": "./src/audio/packs.js?v=0588e482",
     "./src/audio/scales.js": "./src/audio/scales.js?v=fc01a98c",
     "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
@@ -23,6 +24,7 @@
     "./src/core/router.js": "./src/core/router.js?v=bc4b91cb",
     "./src/core/runner.js": "./src/core/runner.js?v=8d39a776",
     "./src/core/store.js": "./src/core/store.js?v=35fed095",
+    "./src/core/telegram.js": "./src/core/telegram.js?v=89ab6079",
     "./src/games/base.js": "./src/games/base.js?v=7463a103",
     "./src/games/custom.js": "./src/games/custom.js?v=c7163414",
     "./src/games/hexagon.js": "./src/games/hexagon.js?v=7e7bc42b",
@@ -32,7 +34,7 @@
     "./src/games/registry.js": "./src/games/registry.js?v=74f580bd",
     "./src/games/tunnel.js": "./src/games/tunnel.js?v=20d3eb2e",
     "./src/games/vortex.js": "./src/games/vortex.js?v=92a9942a",
-    "./src/main.js": "./src/main.js?v=427b7016",
+    "./src/main.js": "./src/main.js?v=20db4911",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
     "./src/render/fx.js": "./src/render/fx.js?v=f3d3d22f",
     "./src/render/palettes.js": "./src/render/palettes.js?v=4d4b1595",
@@ -48,7 +50,7 @@
 <!-- importmap:end -->
   <link rel="stylesheet" href="assets/css/fonts.css?v=d77e4cc7">
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
-  <link rel="stylesheet" href="assets/css/base.css?v=ab25fe64">
+  <link rel="stylesheet" href="assets/css/base.css?v=33c0391d">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
   <link rel="stylesheet" href="assets/css/screens.css?v=44625de9">
 </head>
@@ -275,6 +277,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script type="module" src="src/main.js?v=427b7016"></script>
+<script type="module" src="src/main.js?v=20db4911"></script>
 </body>
 </html>

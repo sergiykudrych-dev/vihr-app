@@ -98,6 +98,7 @@ class AudioEngine {
     const key = `${o.pack || this.pack}:${index}`;
     if (now - (this._lastNote.get(key) || 0) < SAME_NOTE_GAP_MS) return;
     this._lastNote.set(key, now);
+    if (this.onHit) this.onHit(index, vel);
     this._hits.push(now);
 
     const pack = PACKS[o.pack || this.pack] || PACKS.glass;

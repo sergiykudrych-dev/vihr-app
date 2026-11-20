@@ -78,3 +78,6 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .screen.is-active { animation: none; }
 }
+
+/* Внутри Telegram: системная кнопка «Назад» уже есть, свою прячем */
+.in-telegram .game-back { display: none; }

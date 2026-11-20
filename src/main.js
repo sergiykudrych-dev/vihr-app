@@ -8,8 +8,11 @@ import { initTrack, enterTrack } from './ui/track.js';
 import { initBuilder, enterBuilder, leaveBuilder } from './ui/builder.js';
 import { audio } from './audio/engine.js';
 import { lockViewport } from './core/nozoom.js';
+import { initTelegram, haptic } from './core/telegram.js';
 
 lockViewport();
+initTelegram();
+audio.onHit = () => haptic('light');
 
 initGames();
 initPlay();
