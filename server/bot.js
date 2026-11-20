@@ -17,7 +17,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
     ? { reply_markup: { inline_keyboard: [[{ text: '🌀 Play', web_app: { url: webAppUrl } }]] } }
     : {};
   // Кнопка статистики внизу чата — только у админа
-  const adminKeyboard = { reply_markup: { keyboard: [[...(webAppUrl ? [{ text: '🌀 Play', web_app: { url: webAppUrl } }] : []), { text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
+  const adminKeyboard = { reply_markup: { keyboard: [[{ text: STATS_BTN }]], resize_keyboard: true, is_persistent: true } };
 
   // Короткая сводка за сегодня; к ней цепляется нижняя клавиатура админа
   async function sendToday(chat) {
