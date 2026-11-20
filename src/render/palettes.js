@@ -1,16 +1,18 @@
 // Палитры для колец. Цвета идут от центра к краю.
 // Чтобы добавить свою — допиши объект в PALETTES: { name, stops: ['#от', '#…', '#до'] }.
 
+import { t } from '../i18n/index.js';
+
 export const PALETTES = {
-  rainbow: { name: 'Радуга', rainbow: true },
-  neon: { name: 'Неон', stops: ['#22E4F5', '#3B7BFF', '#9B5CFF', '#E84BFF'] },
-  sunset: { name: 'Закат', stops: ['#FFD84A', '#FF8A3D', '#FF4D6A', '#D94BFF'] },
-  ocean: { name: 'Океан', stops: ['#7CFFE0', '#2EE6C8', '#22B8F5', '#4F6BFF'] },
-  acid: { name: 'Кислота', stops: ['#F4FF4A', '#9DF24B', '#4BF28A', '#2EE6C8'] },
-  candy: { name: 'Конфета', stops: ['#FFB3E6', '#FF6FC8', '#B86BFF', '#6FA8FF'] },
-  fire: { name: 'Огонь', stops: ['#FFF3A8', '#FFC23D', '#FF6A2B', '#E8243C'] },
-  ice: { name: 'Лёд', stops: ['#FFFFFF', '#CDEBFF', '#8FC8FF', '#6E8CFF'] },
-  custom: { name: 'Свои', custom: true },
+  rainbow: { name: t('Радуга'), rainbow: true },
+  neon: { name: t('Неон'), stops: ['#22E4F5', '#3B7BFF', '#9B5CFF', '#E84BFF'] },
+  sunset: { name: t('Закат'), stops: ['#FFD84A', '#FF8A3D', '#FF4D6A', '#D94BFF'] },
+  ocean: { name: t('Океан'), stops: ['#7CFFE0', '#2EE6C8', '#22B8F5', '#4F6BFF'] },
+  acid: { name: t('Кислота'), stops: ['#F4FF4A', '#9DF24B', '#4BF28A', '#2EE6C8'] },
+  candy: { name: t('Конфета'), stops: ['#FFB3E6', '#FF6FC8', '#B86BFF', '#6FA8FF'] },
+  fire: { name: t('Огонь'), stops: ['#FFF3A8', '#FFC23D', '#FF6A2B', '#E8243C'] },
+  ice: { name: t('Лёд'), stops: ['#FFFFFF', '#CDEBFF', '#8FC8FF', '#6E8CFF'] },
+  custom: { name: t('Свои'), custom: true },
 };
 
 export const PALETTE_KEYS = Object.keys(PALETTES);

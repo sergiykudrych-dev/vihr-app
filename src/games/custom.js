@@ -2,12 +2,13 @@
 
 import { Game } from './base.js';
 import { NEON, neonStroke } from '../render/fx.js';
+import { t } from '../i18n/index.js';
 
 const TAU = Math.PI * 2;
 const R = 260;
 
 export const DEFAULT_CONFIG = {
-  name: 'Моя игра',
+  name: t('Моя игра'),
   arena: 'hexagon',     // circle | hexagon | square | triangle
   gap: false,           // разрыв в стенке (шарики могут вылететь)
   gravity: 500,
@@ -20,8 +21,8 @@ export const DEFAULT_CONFIG = {
 };
 
 export const RULE_ACTIONS = {
-  ballBall: { note: 'Нота', flash: 'Вспышка', grow: 'Рост', sparks: 'Искры' },
-  ballWall: { note: 'Нота', sparks: 'Искры', speed: 'Ускорение', recolor: 'Смена цвета' },
+  ballBall: { note: t('Нота'), flash: t('Вспышка'), grow: t('Рост'), sparks: t('Искры') },
+  ballWall: { note: t('Нота'), sparks: t('Искры'), speed: t('Ускорение'), recolor: t('Смена цвета') },
 };
 
 const SIDES = { triangle: 3, square: 4, hexagon: 6 };

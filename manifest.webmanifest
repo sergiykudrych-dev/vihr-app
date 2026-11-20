@@ -1,8 +1,8 @@
 {
-  "name": "Вихрь",
-  "short_name": "Вихрь",
-  "description": "Игры-залипашки, которые звучат от касаний и танцуют под твою музыку",
-  "lang": "ru",
+  "name": "Spinly",
+  "short_name": "Spinly",
+  "description": "Satisfying neon physics games that sound on every hit and react to your music",
+  "lang": "en",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",

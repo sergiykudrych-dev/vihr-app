@@ -11,6 +11,16 @@ import { lockViewport } from './core/nozoom.js';
 import { initTelegram, haptic } from './core/telegram.js';
 import { api } from './core/api.js';
 import { initAdmin, enterAdmin } from './ui/admin.js';
+import { lang, setLang, translateDom } from './i18n/index.js';
+
+// Язык: переводим разметку до запуска экранов
+translateDom();
+// Название приложения: Spinly по-английски, Вихрь по-русски
+document.title = lang === 'en' ? 'Spinly' : 'Вихрь';
+if (lang === 'en') document.getElementById('games-title').textContent = 'Spinly';
+const langBtn = document.getElementById('lang-toggle');
+langBtn.textContent = lang === 'en' ? 'RU' : 'EN'; // кнопка показывает язык, на который переключит
+langBtn.addEventListener('click', () => setLang(lang === 'en' ? 'ru' : 'en'));
 
 lockViewport();
 initTelegram();

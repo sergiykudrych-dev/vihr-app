@@ -5,8 +5,9 @@ import { Runner } from '../core/runner.js';
 import { CustomGame, DEFAULT_CONFIG, RULE_ACTIONS } from '../games/custom.js';
 import { store } from '../core/store.js';
 import { go } from '../core/router.js';
+import { t } from '../i18n/index.js';
 
-const ARENAS = [['circle', 'Круг'], ['triangle', 'Треугольник'], ['square', 'Квадрат'], ['hexagon', 'Шестиугольник']];
+const ARENAS = [['circle', t('Круг')], ['triangle', t('Треугольник')], ['square', t('Квадрат')], ['hexagon', t('Шестиугольник')]];
 
 let cfg = structuredClone(DEFAULT_CONFIG);
 let runner = null;
@@ -37,7 +38,7 @@ function bindAll() {
     ['spin', (v) => v / 10, (c) => Math.round(c * 10), (v) => (v / 10).toFixed(1)],
     ['balls', (v) => v, (c) => c, (v) => String(v)],
     ['size', (v) => v, (c) => c, (v) => String(v)],
-    ['gravity', (v) => v, (c) => c, (v) => (v === 0 ? 'нет' : String(v))],
+    ['gravity', (v) => v, (c) => c, (v) => (v === 0 ? t('нет') : String(v))],
     ['bounce', (v) => v / 100, (c) => Math.round(c * 100), (v) => `${v}%`],
   ];
   for (const [key, toCfg, fromCfg, fmt] of sliders) {
@@ -78,11 +79,11 @@ export function initBuilder() {
   });
 
   $('#builder-save').addEventListener('click', () => {
-    const name = (cfg.name || '').trim() || 'Моя игра';
+    const name = (cfg.name || '').trim() || t('Моя игра');
     const game = { ...structuredClone(cfg), name, id: Date.now().toString(36) };
     store.data.customGames.push(game);
     store.save();
-    toast(`«${name}» сохранена`);
+    toast(t('«{name}» сохранена', { name }));
     go(`play-custom-${game.id}`);
   });
 }

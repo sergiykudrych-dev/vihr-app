@@ -5,11 +5,12 @@ import { GAMES } from '../games/registry.js';
 import { track } from '../audio/track.js';
 import { store } from '../core/store.js';
 import { audio } from '../audio/engine.js';
+import { t } from '../i18n/index.js';
 
 const REACTIONS = [
-  { key: 'beat', title: 'Бит → вспышка', sub: 'Игра вздрагивает на каждый удар' },
-  { key: 'bass', title: 'Бас → размер шариков', sub: 'Шарики «дышат» вместе с низами' },
-  { key: 'color', title: 'Мелодия → цвет', sub: 'Цвет меняется с высотой звука' },
+  { key: 'beat', title: t('Бит → вспышка'), sub: t('Игра вздрагивает на каждый удар') },
+  { key: 'bass', title: t('Бас → размер шариков'), sub: t('Шарики «дышат» вместе с низами') },
+  { key: 'color', title: t('Мелодия → цвет'), sub: t('Цвет меняется с высотой звука') },
 ];
 
 const AUDIO_EXT = ['mp3', 'm4a', 'aac', 'wav', 'ogg', 'oga', 'opus', 'flac', 'webm', 'mp4', 'caf', 'aif', 'aiff'];
@@ -45,13 +46,13 @@ function drawWave() {
 function renderPlayer() {
   const has = track.loaded;
   $('#player').hidden = !has;
-  $('#upload-title').textContent = has ? 'Заменить трек' : 'Загрузить трек';
+  $('#upload-title').textContent = has ? t('Заменить трек') : t('Загрузить трек');
   if (!has) return;
   $('#track-name').textContent = track.name;
   const ext = track.name.split('.').pop().toUpperCase();
   $('#track-meta').textContent = `${fmtTime(track.duration || track.el.duration)} · ${ext}`;
   $('#track-toggle-icon').setAttribute('href', `assets/img/icons/sprite.svg?v=8f4948d8#${track.playing ? 'i-pause' : 'i-play'}`);
-  $('#track-toggle').setAttribute('aria-label', track.playing ? 'Пауза' : 'Слушать трек');
+  $('#track-toggle').setAttribute('aria-label', track.playing ? t('Пауза') : t('Слушать трек'));
   drawWave();
 }
 
@@ -79,16 +80,16 @@ export function initTrack() {
     const file = e.target.files[0];
     if (!file) return;
     if (!isAudioFile(file)) {
-      toast('Это не музыкальный файл. Выбери MP3, M4A или WAV');
+      toast(t('Это не музыкальный файл. Выбери MP3, M4A или WAV'));
       e.target.value = '';
       return;
     }
     try {
       await track.load(file);
-      toast('Трек загружен');
+      toast(t('Трек загружен'));
     } catch (err) {
       console.error(err);
-      toast('Не получилось открыть этот файл');
+      toast(t('Не получилось открыть этот файл'));
     }
     e.target.value = '';
   });
@@ -108,7 +109,7 @@ export function initTrack() {
     store.set('trackVolume', v / 100);
     audio.setTrackVolume(v / 100);
   });
-  bindSlider($('#hits-mix'), $('#hits-mix-out'), Math.round(store.data.hitsWithMusic * 100), (v) => (v === 0 ? 'выкл' : `${v}%`), (v) => {
+  bindSlider($('#hits-mix'), $('#hits-mix-out'), Math.round(store.data.hitsWithMusic * 100), (v) => (v === 0 ? t('выкл') : `${v}%`), (v) => {
     store.set('hitsWithMusic', v / 100);
     audio.hitsWithMusic = v / 100;
   });

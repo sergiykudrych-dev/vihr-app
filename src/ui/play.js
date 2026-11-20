@@ -10,6 +10,7 @@ import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
 import { api } from '../core/api.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
+import { t } from '../i18n/index.js';
 
 let runner = null;
 let recorder = null;
@@ -50,7 +51,7 @@ export function initPlay() {
   const mute = $('#game-mute');
   const renderMute = () => {
     mute.setAttribute('aria-pressed', String(audio.muted));
-    mute.setAttribute('aria-label', audio.muted ? 'Включить звук касаний' : 'Выключить звук касаний');
+    mute.setAttribute('aria-label', audio.muted ? t('Включить звук касаний') : t('Выключить звук касаний'));
     $('#game-mute-icon').setAttribute('href', `assets/img/icons/sprite.svg?v=8f4948d8#${audio.muted ? 'i-sound-off' : 'i-sound'}`);
   };
   audio.muted = store.data.muted;
@@ -59,7 +60,7 @@ export function initPlay() {
     audio.muted = !audio.muted;
     store.set('muted', audio.muted);
     renderMute();
-    toast(audio.muted ? 'Звук касаний выключен' : 'Звук касаний включён');
+    toast(audio.muted ? t('Звук касаний выключен') : t('Звук касаний включён'));
   });
 
   initPalette();
@@ -79,7 +80,7 @@ let stopping = false;
 function setRecButton(recording) {
   const btn = $('#rec-btn');
   btn.setAttribute('aria-pressed', String(recording));
-  btn.setAttribute('aria-label', recording ? 'Остановить запись' : 'Записать видео');
+  btn.setAttribute('aria-label', recording ? t('Остановить запись') : t('Записать видео'));
 }
 
 async function toggleRecord() {
@@ -97,7 +98,7 @@ async function toggleRecord() {
     btn.removeAttribute('aria-busy');
     setRecButton(false);
     stopping = false;
-    if (!blob || !blob.size) { toast('Не получилось записать. Попробуй ещё раз'); return; }
+    if (!blob || !blob.size) { toast(t('Не получилось записать. Попробуй ещё раз')); return; }
     showVideo(blob);
     return;
   }
@@ -105,7 +106,7 @@ async function toggleRecord() {
     recorder.start();
   } catch (e) {
     console.error(e);
-    toast('Запись не поддерживается в этом браузере');
+    toast(t('Запись не поддерживается в этом браузере'));
     return;
   }
   setRecButton(true);
@@ -146,13 +147,13 @@ async function saveCurrentVideo() {
   if (result === 'cancelled') return;
   closeVideo();
   api.event('record', currentId);
-  toast(result === 'shared' ? 'Готово' : 'Видео скачано');
+  toast(result === 'shared' ? t('Готово') : t('Видео скачано'));
 }
 
 export function enterPlay(id) {
   const found = findGame(id);
   if (!found) { go('games'); return; }
-  if (api.isDisabled(id)) { toast('Игра временно недоступна'); go('games'); return; }
+  if (api.isDisabled(id)) { toast(t('Игра временно недоступна')); go('games'); return; }
   api.event('play_start', id);
   playStart = performance.now();
   lastScore = -1;
@@ -168,7 +169,7 @@ export function enterPlay(id) {
   runner.resize();
   runner.start();
   const hint = $('#game-hint');
-  hint.textContent = found.meta.hint || 'Касайся экрана';
+  hint.textContent = found.meta.hint || t('Касайся экрана');
   hint.classList.remove('is-hidden');
   setTimeout(() => hint.classList.add('is-hidden'), 3500);
   runner.trackStarted = false;
@@ -266,7 +267,7 @@ function initPalette() {
     let v = input.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, String(max).length);
     if (v && Number(v) > max) {
       v = String(max);
-      showLimit(`Максимум ${max}`);
+      showLimit(t('Максимум {max}', { max }));
     }
     if (input.value !== v) input.value = v;
   });
@@ -274,7 +275,7 @@ function initPalette() {
     const min = Number(input.dataset.min);
     const n = parseInt(input.value, 10);
     if (!Number.isFinite(n)) { renderRingCount(); return; }
-    if (n < min) showLimit(`Минимум ${min}`);
+    if (n < min) showLimit(t('Минимум {min}', { min }));
     setRingCount(n);
   };
   input.addEventListener('change', applyInput);
@@ -306,7 +307,7 @@ function renderRingCount() {
   input.dataset.max = o.max;
   input.maxLength = String(o.max).length;
   input.value = o.value;
-  if (!limitTimer) $('#ring-count-hint').textContent = `Своё число — от ${o.min} до ${o.max}`;
+  if (!limitTimer) $('#ring-count-hint').textContent = t('Своё число — от {min} до {max}', { min: o.min, max: o.max });
 }
 
 let limitTimer = 0;

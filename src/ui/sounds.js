@@ -5,6 +5,7 @@ import { PACKS, PACK_KEYS } from '../audio/packs.js';
 import { SCALES } from '../audio/scales.js';
 import { audio } from '../audio/engine.js';
 import { store } from '../core/store.js';
+import { t } from '../i18n/index.js';
 
 function renderPacks() {
   const box = $('#packs');
@@ -18,10 +19,10 @@ function renderPacks() {
         'aria-pressed': String(selected),
         onclick: () => { store.set('pack', key); audio.pack = key; audio.preview(key); renderPacks(); },
       },
-        el('span', { class: 'row__title' }, p.name, selected ? el('span', { class: 'badge badge--accent' }, 'Выбрано') : null),
+        el('span', { class: 'row__title' }, p.name, selected ? el('span', { class: 'badge badge--accent' }, t('Выбрано')) : null),
         el('span', { class: 'row__sub', style: 'display:block' }, p.sub)),
       el('button', {
-        class: 'icon-btn icon-btn--glass', type: 'button', 'aria-label': `Прослушать: ${p.name}`,
+        class: 'icon-btn icon-btn--glass', type: 'button', 'aria-label': t('Прослушать: {name}', { name: p.name }),
         onclick: () => audio.preview(key),
       }, icon('i-play', 'icon icon--sm')));
     return row;

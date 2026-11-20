@@ -4,12 +4,13 @@ import { $, el, pressGroup } from './dom.js';
 import { GAMES, CATEGORIES, CUSTOM_META } from '../games/registry.js';
 import { store } from '../core/store.js';
 import { api } from '../core/api.js';
+import { t } from '../i18n/index.js';
 
 let category = 'all';
 
 function allGames() {
   const mine = store.data.customGames.map((g) => ({
-    id: 'custom-' + g.id, title: g.name, sub: 'Своя игра', ...CUSTOM_META,
+    id: 'custom-' + g.id, title: g.name, sub: t('Своя игра'), ...CUSTOM_META,
   }));
   return [...GAMES, ...mine].filter((g) => !api.isDisabled(g.id));
 }
@@ -20,8 +21,8 @@ function renderGrid() {
   if (!list.length) {
     grid.replaceChildren(el('a', { class: 'game-card', href: '#builder' },
       el('div', { class: 'game-card__thumb' }, el('img', { src: CUSTOM_META.thumb, alt: '' })),
-      el('div', { class: 'game-card__title' }, 'Создать игру'),
-      el('div', { class: 'game-card__sub' }, 'Собери свою в конструкторе')));
+      el('div', { class: 'game-card__title' }, t('Создать игру')),
+      el('div', { class: 'game-card__sub' }, t('Собери свою в конструкторе'))));
     return;
   }
   grid.replaceChildren(...list.map((g) => el('a', { class: 'game-card', href: `#play-${g.id}` },

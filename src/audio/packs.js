@@ -1,6 +1,8 @@
 // Наборы звуков. Каждый — маленький синтезатор на Web Audio, без файлов: звук рождается в момент касания.
 // play(ctx, out, freq, vel, when) — vel от 0 до 1 (сила удара).
 
+import { t } from '../i18n/index.js';
+
 function env(ctx, when, attack, decay, peak) {
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.0001, when);
@@ -20,8 +22,8 @@ function osc(ctx, type, freq, when, dur) {
 
 export const PACKS = {
   glass: {
-    name: 'Стекло',
-    sub: 'Звонкие ноты',
+    name: t('Стекло'),
+    sub: t('Звонкие ноты'),
     icon: 'i-bell',
     color: '#22E4F5',
     octave: 1,
@@ -35,8 +37,8 @@ export const PACKS = {
     },
   },
   drops: {
-    name: 'Капли',
-    sub: 'Мягкие капли',
+    name: t('Капли'),
+    sub: t('Мягкие капли'),
     icon: 'i-drop',
     color: '#4BF28A',
     octave: 1,
@@ -48,8 +50,8 @@ export const PACKS = {
     },
   },
   bit8: {
-    name: '8-бит',
-    sub: 'Пиксельные пики',
+    name: t('8-бит'),
+    sub: t('Пиксельные пики'),
     icon: 'i-pixel',
     color: '#FFD84A',
     octave: 0,
@@ -64,8 +66,8 @@ export const PACKS = {
     },
   },
   bass: {
-    name: 'Бас',
-    sub: 'Глубокие удары',
+    name: t('Бас'),
+    sub: t('Глубокие удары'),
     icon: 'i-pulse',
     color: '#FF4FD8',
     octave: -2,

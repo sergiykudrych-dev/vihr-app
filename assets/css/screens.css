@@ -207,3 +207,7 @@
 #admin-body .switch::before { width: 54px; height: 30px; top: 7px; }
 #admin-body .switch::after { width: 26px; height: 26px; top: 9px; right: 24px; }
 #admin-body .switch[aria-checked="true"]::after { right: 3px; }
+
+/* Кнопки в шапке экрана «Игры»: админка и язык */
+.head-actions { display: flex; align-items: center; gap: var(--sp-2); }
+.lang-btn { min-width: 52px; padding-left: var(--sp-3); padding-right: var(--sp-3); font-weight: 600; letter-spacing: .04em; }
