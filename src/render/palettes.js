@@ -5,6 +5,7 @@ import { t } from '../i18n/index.js';
 
 export const PALETTES = {
   rainbow: { name: t('Радуга'), rainbow: true },
+  amber: { name: t('Янтарь'), stops: ['#FFD84A', '#FFB238', '#FF8C3A', '#F2603F'] },
   gold: { name: t('Золото'), stops: ['#D8D08A', '#B9B068', '#9C9450', '#7E7840'] },
   neon: { name: t('Неон'), stops: ['#22E4F5', '#3B7BFF', '#9B5CFF', '#E84BFF'] },
   sunset: { name: t('Закат'), stops: ['#FFD84A', '#FF8A3D', '#FF4D6A', '#D94BFF'] },
