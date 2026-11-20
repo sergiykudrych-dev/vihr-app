@@ -6,9 +6,10 @@ import { neonStroke, withAlpha } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 15;
-const INNER_R = 44;   // радиус первого кольца
-const STEP = 18;      // расстояние между кольцами (внешнее ≈ 296 — почти весь экран)
+const RINGS = 42;           // хватает до углов даже высокого экрана телефона
+const INNER_R = 44;         // радиус первого кольца
+const STEP = 18;            // расстояние между кольцами
+const COLOR_SPAN = 15;      // столько колец занимает палитра от центра до края ширины экрана
 
 export class VortexGame extends Game {
   setup() {
@@ -34,7 +35,8 @@ export class VortexGame extends Game {
         start: 0, len: TAU - gap,
         // Разрывы выстроены спиралью — как в залипательных роликах
         rot: i * 0.42,
-        spin: (i % 2 ? -1 : 1) * (0.35 + i * 0.035),
+        // Внешние кольца крутятся не быстрее внутренних — иначе края экрана мельтешат
+        spin: (i % 2 ? -1 : 1) * (0.35 + (i % COLOR_SPAN) * 0.035),
         data: { note: RINGS - i, ring: i },
         color: '#FFFFFF', // задаётся палитрой ниже
         pulse: 0,
@@ -55,8 +57,14 @@ export class VortexGame extends Game {
   }
 
   applyPalette() {
-    const colors = paletteColors(this.palette || 'rainbow', this.rings.length, this.paletteCustom);
-    this.rings.forEach((r, i) => { r.color = colors[i]; });
+    // Палитра идёт от центра до края ширины экрана, дальше — обратно (туда-сюда),
+    // поэтому кольца у верха и низа экрана продолжают тот же плавный переход
+    const colors = paletteColors(this.palette || 'rainbow', COLOR_SPAN, this.paletteCustom);
+    const period = (COLOR_SPAN - 1) * 2;
+    this.rings.forEach((r, i) => {
+      const k = i % period;
+      r.color = colors[k < COLOR_SPAN ? k : period - k];
+    });
   }
 
   addCenterBall() {
@@ -108,7 +116,7 @@ export class VortexGame extends Game {
       }
       this.unstick(b, d, dt);
     }
-    this.world.balls = this.world.balls.filter((b) => !(b.data.escaping <= 0) && Math.hypot(b.x, b.y) < 420);
+    this.world.balls = this.world.balls.filter((b) => !(b.data.escaping <= 0) && Math.hypot(b.x, b.y) < 900);
     // Если всё разбито или шариков не осталось — начинаем заново
     const left = this.rings.filter((r) => !r.broken).length;
     if (left === 0 || this.world.balls.length === 0) {
