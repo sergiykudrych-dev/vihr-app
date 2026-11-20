@@ -6,9 +6,11 @@ import { HexagonGame } from './hexagon.js';
 import { LaserGame } from './laser.js';
 import { RaysGame } from './rays.js';
 import { CustomGame } from './custom.js';
+import { TunnelGame } from './tunnel.js';
 
 export const GAMES = [
   { id: 'vortex', title: 'Вихрь', sub: 'Разбей радужные кольца', tag: 'rhythm', thumb: 'assets/img/games/vortex.svg', Game: VortexGame, hint: 'Касайся — в центре появится новый шарик' },
+  { id: 'tunnel', title: 'Туннель', sub: 'Пробей 900 колец', tag: 'rhythm', thumb: 'assets/img/games/tunnel.svg', Game: TunnelGame, hint: 'Касайся — добавишь ещё шарик' },
   { id: 'plinko', title: 'Плинко', sub: 'Шарики падают в ноты', tag: 'physics', thumb: 'assets/img/games/plinko.svg', Game: PlinkoGame, hint: 'Касайся — сверху упадёт шарик' },
   { id: 'hexagon', title: 'Шестиугольник', sub: 'Мяч бьёт по граням', tag: 'physics', thumb: 'assets/img/games/hexagon.svg', Game: HexagonGame, hint: 'Касайся — добавишь мяч, веди пальцем — крутишь' },
   { id: 'laser', title: 'Лазерное кольцо', sub: 'Шары тянут лучи', tag: 'rhythm', thumb: 'assets/img/games/laser.svg', Game: LaserGame, hint: 'Касайся — добавишь шар' },

@@ -31,6 +31,7 @@
 
 .game-ui { position: absolute; inset: 0; pointer-events: none; }
 .game-ui > * { pointer-events: auto; }
+.game-ui .icon-btn--glass { background: rgba(8, 7, 18, .62); border: 1px solid rgba(255, 255, 255, .1); }
 .game-back { position: absolute; top: calc(var(--safe-top) + 16px); left: var(--sp-4); }
 .game-mute { position: absolute; top: calc(var(--safe-top) + 16px); right: var(--sp-4); }
 .game-mute[aria-pressed="true"] { color: var(--c-text-3); }
@@ -40,8 +41,10 @@
   pointer-events: none; font-variant-numeric: tabular-nums;
 }
 .game-hint {
-  position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) + 130px);
-  text-align: center; font-size: var(--fs-md); color: var(--c-text-2);
+  position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 130px); transform: translateX(-50%);
+  max-width: calc(100% - 32px); padding: 8px 14px; border-radius: var(--r-pill);
+  background: rgba(8, 7, 18, .7); color: var(--c-text);
+  font-size: var(--fs-md); text-align: center; white-space: nowrap;
   pointer-events: none; transition: opacity .6s;
 }
 .game-hint.is-hidden { opacity: 0; }

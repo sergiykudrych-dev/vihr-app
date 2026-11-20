@@ -152,6 +152,8 @@ export function enterPlay(id) {
   const game = found.create();
   runner.setGame(game);
   setupPaletteFor(game);
+  // Некоторые игры рисуют счёт сами (например, «Туннель» — число в центре)
+  $('#game-score').hidden = !!game.hideScore;
   runner.resize();
   runner.start();
   const hint = $('#game-hint');
