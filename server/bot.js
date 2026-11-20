@@ -58,7 +58,7 @@ export function startBot({ token, webAppUrl, adminIds }) {
   (async () => {
     // long polling не работает вместе с вебхуком; пробуем, пока Telegram не ответит
     for (;;) {
-      try { await api('deleteWebhook'); break; } catch (e) { console.error('deleteWebhook', e.message); await new Promise((s) => setTimeout(s, 5000)); }
+      try { await api('deleteWebhook'); break; } catch (e) { console.error('deleteWebhook', (e.message + (e.cause ? ' [' + (e.cause.code || e.cause.message) + ']' : ''))); await new Promise((s) => setTimeout(s, 5000)); }
     }
     let offset = 0;
     for (;;) {
@@ -67,10 +67,10 @@ export function startBot({ token, webAppUrl, adminIds }) {
         if (!r.ok) { await new Promise((s) => setTimeout(s, 5000)); continue; }
         for (const u of r.result) {
           offset = u.update_id + 1;
-          if (u.message) handle(u.message).catch((e) => console.error('bot', e.message));
+          if (u.message) handle(u.message).catch((e) => console.error('bot', (e.message + (e.cause ? ' [' + (e.cause.code || e.cause.message) + ']' : ''))));
         }
       } catch (e) {
-        console.error('polling', e.message);
+        console.error('polling', (e.message + (e.cause ? ' [' + (e.cause.code || e.cause.message) + ']' : '')));
         await new Promise((s) => setTimeout(s, 5000));
       }
     }
