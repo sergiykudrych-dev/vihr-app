@@ -6,6 +6,7 @@ import { track } from '../audio/track.js';
 import { store } from '../core/store.js';
 import { audio } from '../audio/engine.js';
 import { t } from '../i18n/index.js';
+import { api } from '../core/api.js';
 
 const REACTIONS = [
   { key: 'beat', title: t('Бит → вспышка'), sub: t('Игра вздрагивает на каждый удар') },
@@ -121,12 +122,17 @@ export function initTrack() {
 /** Выбор игры, в которую пойти с этим треком (по умолчанию — последняя сыгранная). */
 function renderGamePicker() {
   const mine = store.data.customGames.map((g) => ['custom-' + g.id, g.name]);
-  const items = [...GAMES.map((g) => [g.id, g.title]), ...mine];
-  let picked = items.some(([id]) => id === store.data.lastGame) ? store.data.lastGame : 'vortex';
+  // Выключенные в админке игры не показываем
+  const items = [...GAMES.filter((g) => !api.isDisabled(g.id)).map((g) => [g.id, g.title]), ...mine];
+  if (!items.length) return;
+  let picked = items.some(([id]) => id === store.data.lastGame) ? store.data.lastGame : items[0][0];
   const btn = $('#track-play-game');
   btn.href = `#play-${picked}`;
   pressGroup($('#track-games'), items, picked, (id) => { picked = id; btn.href = `#play-${id}`; }, 'chip');
 }
+
+// Админ выключил игру, пока открыт экран «Трек» — обновляем список
+api.onChange(() => { if (document.getElementById('app').dataset.route === 'track') renderGamePicker(); });
 
 export function enterTrack() {
   renderPlayer();
