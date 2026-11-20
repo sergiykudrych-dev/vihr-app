@@ -6,10 +6,10 @@ import { neonStroke, withAlpha } from '../render/fx.js';
 import { paletteColors } from '../render/palettes.js';
 
 const TAU = Math.PI * 2;
-const RINGS = 42;           // хватает до углов даже высокого экрана телефона
+const RINGS = 22;           // круг чуть шире экрана, сверху и снизу — тёмное поле
 const INNER_R = 44;         // радиус первого кольца
 const STEP = 18;            // расстояние между кольцами
-const COLOR_SPAN = 15;      // столько колец занимает палитра от центра до края ширины экрана
+const COLOR_SPAN = 22;      // палитра от центра до последнего кольца
 
 export class VortexGame extends Game {
   setup() {
