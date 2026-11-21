@@ -62,7 +62,8 @@ svg { display: block; }
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: calc(var(--safe-top) + 24px) var(--sp-4) calc(var(--nav-h) + var(--safe-bottom) + 24px);
+  touch-action: pan-y;
+  padding: calc(var(--safe-top) + 24px) var(--sp-4) calc(var(--nav-h) + var(--safe-bottom) + 72px);
   gap: var(--sp-4);
 }
 .screen.is-active { display: flex; animation: screen-in .25s var(--ease); }

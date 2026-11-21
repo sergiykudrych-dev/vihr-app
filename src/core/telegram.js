@@ -28,7 +28,7 @@ export function initTelegram({ onBack } = {}) {
 
   tg.ready();
   tg.expand();
-  if (ver('7.7')) tg.disableVerticalSwipes(); // чтобы свайп вниз не закрывал игру
+  try { if (tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (e) {} // чтобы свайп вниз не закрывал игру
   if (ver('6.1')) {
     tg.setHeaderColor(BG);
     tg.setBackgroundColor(BG);
