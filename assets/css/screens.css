@@ -222,3 +222,13 @@
 .ad-field__box > .muted { min-width: 42px; }
 /* Админка: маленькие иконки игр в списке */
 .admin-game__icon { width: 52px; height: 34px; flex: none; object-fit: contain; border-radius: 8px; background: var(--c-bg-game); border: 1px solid var(--c-border); padding: 2px; }
+
+/* Конструктор: компактная раскладка, чтобы каждая вкладка помещалась на экран без прокрутки */
+.screen[data-screen="builder"] { gap: 10px; padding-top: calc(var(--safe-top) + 12px); padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); }
+.screen[data-screen="builder"] .builder-preview { height: 150px; }
+.screen[data-screen="builder"] .panel { gap: 6px; }
+.screen[data-screen="builder"] .rule.card { padding: 10px 14px; gap: 8px; }
+.screen[data-screen="builder"] .rule__chips .chip { min-height: 32px; padding: 0 12px; }
+.screen[data-screen="builder"] .toggle-row { min-height: 44px; }
+.screen[data-screen="builder"] .field { gap: 4px; }
+.screen[data-screen="builder"] .field input[type="text"] { min-height: 44px; }
