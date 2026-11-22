@@ -7,7 +7,7 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 4.5;             // радиус шарика
+const BR = 3.2;             // радиус шарика
 const MAX = 70000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
@@ -35,8 +35,8 @@ const SPEED_MAX = 4.2;   // предел суммарной «скорости»
 
 const PRESSURE = 1.1;
 const MULT = 20;          // из одного зажатого шарика получается 20 (размер тот же)
-const LIVE_SPEED = 7;           // в игре палки быстрее: раунд ~10 секунд
-const LIVE_CD = 0.2; 
+const LIVE_SPEED = 1;         // в игре та же скорость, что и в видео
+const LIVE_CD = 2.2;
 const LIVE_ROUND = 9;          // секунд до перезапуска в игре
 const SQUEEZE_CD = 2.2;   // после удвоения шарик пару мгновений не удваивается
 
@@ -117,7 +117,7 @@ export class MultiplyGame extends Game {
     const hitLow = gap <= GAP_MIN && this.w2 < this.w1;
     const hitHigh = gap >= TAU - GAP_MIN && this.w2 > this.w1;
     if (hitLow || hitHigh) {
-      const k = Math.min(this.offline ? SPEED_MAX : SPEED_MAX * 2.2, Math.hypot(this.w1, this.w2) * SPEEDUP) / Math.max(1e-6, Math.hypot(this.w1, this.w2));
+      const k = Math.min(this.offline ? SPEED_MAX : SPEED_MAX, Math.hypot(this.w1, this.w2) * SPEEDUP) / Math.max(1e-6, Math.hypot(this.w1, this.w2));
       const t = this.w1; this.w1 = this.w2 * k; this.w2 = t * k;
       if (hitLow) { const m = (this.a1 + this.a2) / 2; this.a1 = m - GAP_MIN / 2; this.a2 = m + GAP_MIN / 2; }
       else { const m = (this.a1 + this.a2 + TAU) / 2; this.a2 = m - GAP_MIN / 2; this.a1 = m + GAP_MIN / 2 - TAU; }
