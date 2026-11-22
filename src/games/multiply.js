@@ -7,8 +7,8 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 3;             // радиус шарика
-const MAX = 4000;         // больше шариков не бывает
+const BR = 1.6;             // радиус шарика
+const MAX = 24000;        // больше шариков не бывает
 const GRAV = 380;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
@@ -25,18 +25,21 @@ const ROD_U0 = 22;        // палка начинается не от само�
 
 // Угол между палками: от GAP_MIN (конусы почти касаются у стенки) до GAP_MAX
 // (при GAP_MIN концы конусов у стенки почти смыкаются — меньше диаметра шарика)
-const GAP_MIN = 0.165;
+const GAP_MIN = 0.16; 
 const GAP_MAX = 2.3;
 const GAP_PERIOD = 2.2;   // секунд на «разжал — сжал»
 const SPIN = 0.55;       // рад/с: «челюсти» целиком крутятся по кругу
-const SWAY = 0.8;         // «челюсти» слегка качаются вокруг дна
-const SWAY_W = 0.5;       // рад/с
 
+const SPEEDUP = 1.03;     // на каждое смыкание конусов вращение ускоряется
+const SPEED_MAX = 1.8;
+
+const PRESSURE = 0.5;
 const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
 const GEN_COLORS = ['#4C5BFF', '#FFE14D', '#2EF0E0', '#39E58C', '#FF8A3D', '#FF3B3B', '#F3D9A4'];
 
+const FLUID_N = 2500;     // когда шариков больше — вместо парных столкновений считаем «давление» по плотности
 const CELL = BR * 2;
 const GRID = Math.ceil((WALL_R * 2 + 40) / CELL);
 
@@ -69,6 +72,8 @@ export class MultiplyGame extends Game {
     this.cd = new Float32Array(MAX);
     this.head = new Int32Array(GRID * GRID);
     this.next = new Int32Array(MAX);
+    this.cnt = new Uint16Array(GRID * GRID);
+    this.cell = new Int32Array(MAX);
     this.n = 0;
     this.hold = 0;       // пауза на финале
     this.pulse = 0;
@@ -79,6 +84,7 @@ export class MultiplyGame extends Game {
     this.n = 0;
     this.hold = 0;
     this.time = 0;
+    this.rot = 0; this.ph = 0; this.dir = 1; this.sp = 1;
     this.spawn(0, WALL_R * 0.55, 0, 0, 0);
     this.spawn(0, WALL_R * 0.55 - 12, 0, 0, 0);
     this.score = 2;
@@ -92,19 +98,30 @@ export class MultiplyGame extends Game {
     return i;
   }
 
-  /** Углы палок и их угловые скорости в момент t. */
-  arms(t) {
-    // Центр «челюстей» качается вокруг дна (экранный низ = +π/2), а угол между палками сжимается и разжимается
-    const c = Math.PI / 2 + SPIN * t;
-    const cRate = SPIN;
+  /** Углы палок и их угловые скорости: челюсти крутятся по кругу, угол между палками сжимается и разжимается. */
+  arms() {
+    const c = Math.PI / 2 + this.rot;
+    const cRate = this.dir * SPIN * this.sp;
     const mid = (GAP_MAX + GAP_MIN) / 2, amp = (GAP_MAX - GAP_MIN) / 2;
-    const w = TAU / GAP_PERIOD;
-    const gap = mid + amp * Math.cos(w * t);
-    const gapRate = -amp * w * Math.sin(w * t);
+    const w = (TAU / GAP_PERIOD) * this.sp;
+    const gap = mid + amp * Math.cos(this.ph);
+    const gapRate = -amp * w * Math.sin(this.ph);
     return [
       { a: c - gap / 2, w: cRate - gapRate / 2 },
       { a: c + gap / 2, w: cRate + gapRate / 2 },
     ];
+  }
+
+  /** Двигает челюсти на h секунд. Когда конусы сомкнулись — вращение меняет направление и ускоряется. */
+  advance(h) {
+    const before = Math.floor((this.ph + Math.PI) / TAU);
+    this.rot += this.dir * SPIN * this.sp * h;
+    this.ph += (TAU / GAP_PERIOD) * this.sp * h;
+    if (Math.floor((this.ph + Math.PI) / TAU) !== before) {
+      this.dir = -this.dir;
+      this.sp = Math.min(SPEED_MAX, this.sp * SPEEDUP);
+      this.pulse = 1;
+    }
   }
 
   tap(x, y) {
@@ -128,16 +145,16 @@ export class MultiplyGame extends Game {
       this.hold += dt;
       if (this.hold > 4) { this.restart(); return; }
     }
-    const steps = Math.max(1, Math.ceil(dt / (this.n > 3000 ? 1 / 60 : this.n > 1500 ? 1 / 80 : 1 / 120)));
+    const steps = Math.max(1, Math.ceil(dt / (this.n > 6000 ? 1 / 60 : this.n > 2500 ? 1 / 80 : 1 / 120)));
     const h = dt / steps;
-    for (let s = 0; s < steps; s++) this.step(h, this.time - dt + h * (s + 1));
+    for (let s = 0; s < steps; s++) { this.advance(h); this.step(h); }
     this.score = this.n;
   }
 
-  step(h, t) {
+  step(h) {
     const n = this.n;
     const { x, y, vx, vy, cd } = this;
-    const arms = this.arms(t);
+    const arms = this.arms();
 
     // 1. Движение
     for (let i = 0; i < n; i++) {
@@ -158,15 +175,19 @@ export class MultiplyGame extends Game {
       this.next[i] = this.head[c]; this.head[c] = i;
     }
     const D = BR * 2, D2 = D * D;
-    for (let i = 0; i < n; i++) {
+    if (n > FLUID_N) this.relax(n);
+    const stride = 1;
+    for (let i = 0; i < n && n <= FLUID_N; i++) {
       const cx = Math.max(0, Math.min(GRID - 1, ((x[i] + half) / CELL) | 0));
       const cy = Math.max(0, Math.min(GRID - 1, ((y[i] + half) / CELL) | 0));
+      let budget = 14;   // в тесной куче в клетке бывают сотни шариков — лишнее не считаем
       for (let oy = -1; oy <= 1; oy++) {
         const gy = cy + oy; if (gy < 0 || gy >= GRID) continue;
         for (let ox = -1; ox <= 1; ox++) {
           const gx = cx + ox; if (gx < 0 || gx >= GRID) continue;
-          for (let j = this.head[gy * GRID + gx]; j !== -1; j = this.next[j]) {
-            if (j <= i) continue;
+          for (let j = this.head[gy * GRID + gx]; j !== -1 && budget > 0; j = this.next[j]) {
+            budget--;
+            if (j === i || (stride === 1 && j < i)) continue;
             const dx = x[j] - x[i], dy = y[j] - y[i];
             const d2 = dx * dx + dy * dy;
             if (d2 >= D2 || d2 < 1e-6) continue;
@@ -199,8 +220,13 @@ export class MultiplyGame extends Game {
     }
 
     // 4. Удвоение зажатых
+    let sounds = 0;
+    // Когда уже тесно, новые шарики появляются не все сразу — куча успевает расправиться
+    const cap = this.n > FLUID_N ? 400 : 1e9;
+    let made = 0;
     for (const i of squeezed) {
-      if (this.n >= MAX) break;
+      if (this.n >= MAX || made >= cap) break;
+      made++;
       const g = Math.min(250, this.gen[i] + 1);
       this.gen[i] = g;
       cd[i] = SQUEEZE_CD;
@@ -208,9 +234,34 @@ export class MultiplyGame extends Game {
       const j = this.spawn(x[i] + Math.cos(ang) * BR * 0.6, y[i] + Math.sin(ang) * BR * 0.6,
         vx[i] + Math.cos(ang) * 60, vy[i] + Math.sin(ang) * 60, g);
       if (j >= 0) cd[j] = SQUEEZE_CD;
-      if (this.n < 1500) this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 2, 140, 0.3);
-      if (this.n < 300) audio.hit(g * 2 + (i % 3), 0.5);
-      else if (Math.random() < 0.06) audio.hit(g * 2, 0.35);
+      if (this.n < 800) this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 2, 140, 0.3);
+      if (sounds < 2 && (this.n < 300 || Math.random() < 0.1)) { sounds++; audio.hit(g * 2 + (i % 3), 0.45); }
+    }
+  }
+
+  /** Давление по клеткам сетки: перегруженная клетка выталкивает шарики в сторону, где свободнее. */
+  relax(n) {
+    const { x, y, vx, vy, cnt, cell } = this;
+    const half = WALL_R + 20;
+    for (let pass = 0; pass < 2; pass++) {
+      cnt.fill(0);
+      for (let i = 0; i < n; i++) {
+        const cx = Math.max(1, Math.min(GRID - 2, ((x[i] + half) / CELL) | 0));
+        const cy = Math.max(1, Math.min(GRID - 2, ((y[i] + half) / CELL) | 0));
+        const c = cy * GRID + cx; cell[i] = c; cnt[c]++;
+      }
+      for (let i = 0; i < n; i++) {
+        const c = cell[i], d = cnt[c];
+        if (d < 2) continue;
+        const gx = (cnt[c - 1] - cnt[c + 1]) + (Math.random() - 0.5) * (d - 1);
+        const gy = (cnt[c - GRID] - cnt[c + GRID]) + (Math.random() - 0.5) * (d - 1);
+        const k = PRESSURE;
+        let dx = gx * k, dy = gy * k;
+        const m = Math.abs(dx) + Math.abs(dy);
+        if (m > 2.5) { dx *= 2.5 / m; dy *= 2.5 / m; }
+        x[i] += dx; y[i] += dy;
+        vx[i] += dx * 4; vy[i] += dy * 4;
+      }
     }
   }
 
@@ -277,7 +328,7 @@ export class MultiplyGame extends Game {
     ctx.beginPath(); ctx.arc(0, 0, WALL_R + 2, 0, TAU); ctx.stroke();
 
     // Палки и конусы
-    const arms = this.arms(this.time);
+    const arms = this.arms();
     for (const arm of arms) {
       ctx.save();
       ctx.rotate(arm.a);
@@ -306,18 +357,18 @@ export class MultiplyGame extends Game {
     // Шарики. Мало — светящиеся спрайты; много — цветные точки пачками по цвету (иначе всё белеет)
     if (this.n < 150) {
       ctx.globalCompositeOperation = 'lighter';
-      const S = BR * 4;
+      const S = BR * 7;
       for (let i = 0; i < this.n; i++) {
         ctx.drawImage(ballSprite(GEN_COLORS[this.gen[i] % GEN_COLORS.length]), this.x[i] - S, this.y[i] - S, S * 2, S * 2);
       }
       ctx.globalCompositeOperation = 'source-over';
     }
-    const R = this.n < 150 ? BR * 0.8 : BR * 0.95;
+    const R = this.n < 150 ? BR * 1.2 : BR * 0.98;
     for (let c = 0; c < GEN_COLORS.length; c++) {
       ctx.fillStyle = GEN_COLORS[c];
       ctx.beginPath();
       let any = false;
-      const rect = this.n > 2500;
+      const rect = this.n > 1200;
       for (let i = 0; i < this.n; i++) {
         if (this.gen[i] % GEN_COLORS.length !== c) continue;
         if (rect) ctx.rect(this.x[i] - R, this.y[i] - R, R * 2, R * 2);
