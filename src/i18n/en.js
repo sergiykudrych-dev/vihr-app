@@ -23,6 +23,8 @@ export const EN = {
   'Плинко': 'Plinko',
   'Соты': 'Honeycomb',
   'Спираль': 'Spiral',
+  'Размножение': 'Multiply',
+  'Конусы сжимают шарики — их вдвое больше': 'Cones squeeze the balls and double them',
   'Разбей спираль из колец': 'Break the spiral of rings',
   'Янтарь': 'Amber',
   'Шарики разбивают соты': 'Balls smash the honeycomb',

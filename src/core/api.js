@@ -15,12 +15,15 @@ let disabled = readCache();
 let admin = false;
 let ads = { enabled: false, every: 3, gapSec: 180, firstSec: 120 };
 
+const TEST_ONLY = new Set(['multiply']);
+
 export const api = {
   get enabled() { return !!API_URL; },
   get isAdmin() { return admin; },
   /** Правила показа рекламы (с сервера). */
   get ads() { return ads; },
-  isDisabled: (id) => disabled.has(id),
+  // Тестовые игры: видны только админу (остальным — как выключенные)
+  isDisabled: (id) => disabled.has(id) || (TEST_ONLY.has(id) && !admin),
   /** Подписаться на изменение списка выключенных игр или прав. */
   onChange(fn) { listeners.add(fn); },
 

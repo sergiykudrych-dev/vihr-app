@@ -9,6 +9,7 @@ import { CustomGame } from './custom.js';
 import { TunnelGame } from './tunnel.js';
 import { HoneycombGame, TargetGame } from './smash.js';
 import { SpiralGame } from './spiral.js';
+import { MultiplyGame } from './multiply.js';
 import { t } from '../i18n/index.js';
 
 export const GAMES = [
@@ -17,6 +18,7 @@ export const GAMES = [
   { id: 'spiral', title: t('Спираль'), sub: t('Разбей спираль из колец'), tag: 'rhythm', thumb: 'assets/img/games/spiral.svg', Game: SpiralGame, hint: t('Касайся — добавишь шарик') },
   { id: 'honeycomb', title: t('Соты'), sub: t('Шарики разбивают соты'), tag: 'physics', thumb: 'assets/img/games/honeycomb.svg', Game: HoneycombGame, hint: t('Касайся — добавишь шарик') },
   { id: 'target', title: t('Мишень'), sub: t('Разбей радужные плитки'), tag: 'physics', thumb: 'assets/img/games/target.svg', Game: TargetGame, hint: t('Касайся — добавишь шарик') },
+  { id: 'multiply', title: t('Размножение'), sub: t('Конусы сжимают шарики — их вдвое больше'), tag: 'physics', thumb: 'assets/img/games/multiply.svg', Game: MultiplyGame, hint: t('Касайся — добавишь шарик') },
   { id: 'plinko', title: t('Плинко'), sub: t('Шарики падают в ноты'), tag: 'physics', thumb: 'assets/img/games/plinko.svg', Game: PlinkoGame, hint: t('Касайся — сверху упадёт шарик') },
   { id: 'hexagon', title: t('Шестиугольник'), sub: t('Мяч бьёт по граням'), tag: 'physics', thumb: 'assets/img/games/hexagon.svg', Game: HexagonGame, hint: t('Касайся — добавишь мяч, веди пальцем — крутишь') },
   { id: 'laser', title: t('Лазерное кольцо'), sub: t('Шары тянут лучи'), tag: 'rhythm', thumb: 'assets/img/games/laser.svg', Game: LaserGame, hint: t('Касайся — добавишь шар') },
