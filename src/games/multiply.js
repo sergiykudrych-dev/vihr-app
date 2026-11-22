@@ -35,6 +35,8 @@ const SPEED_MAX = 4.2;   // предел суммарной «скорости»
 
 const PRESSURE = 1.1;
 const MULT = 20;          // из одного зажатого шарика получается 20 (размер тот же)
+const LIVE_SPEED = 2.4;         // в игре палки быстрее: раунд ~10 секунд
+const LIVE_CD = 0.65;
 const SQUEEZE_CD = 2.2;   // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
@@ -87,7 +89,8 @@ export class MultiplyGame extends Game {
     this.popping = false;
     this.time = 0;
     if (!this.limit) this.limit = MAX;
-    this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5; this.w2 = -0.9;
+    const sp = this.offline ? 1 : LIVE_SPEED; // в игре — быстрый раунд-превью, в видео — неспешный
+    this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5 * sp; this.w2 = -0.9 * sp;
     this.spawn(0, WALL_R * 0.72, 0, 0, 0);
     this.score = 1;
   }
@@ -143,13 +146,20 @@ export class MultiplyGame extends Game {
     if (this.popping) { this.popStep(dt); return; }
     if (this.n >= this.limit) {
       this.hold += dt;
-      if (this.hold > 0.9) { this.startPop(); return; }
+      // В видео круг лопается, в самой игре раунд просто начинается заново
+      if (this.offline) { if (this.hold > 0.9) { this.startPop(); return; } }
+      else if (this.hold > 0.4) { this.restart(); return; }
     }
     const steps = Math.max(1, Math.ceil(dt / (this.n > 6000 ? 1 / 60 : this.n > 2500 ? 1 / 80 : 1 / 120)));
     const h = dt / steps;
     for (let s = 0; s < steps; s++) { this.advance(h); this.step(h); }
     this.score = this.n;
   }
+
+  /** Видео собирается: игра переходит на неспешный ритм и начинает раунд заново. */
+  onOffline() { this.offline = true; this.restart(); }
+
+  squeezeCd() { return this.offline ? SQUEEZE_CD : LIVE_CD; }
 
   startPop() {
     this.popping = true;
@@ -258,12 +268,12 @@ export class MultiplyGame extends Game {
       if (this.n >= this.limit || made >= cap) break;
       const g = Math.min(250, this.gen[i] + 1);
       this.gen[i] = g;
-      cd[i] = SQUEEZE_CD;
+      cd[i] = this.squeezeCd();
       for (let m = 1; m < MULT && this.n < this.limit; m++) {
         const ang = Math.random() * TAU, r = BR * (0.5 + Math.random() * 2.5), sp = 40 + Math.random() * 110;
         const c = this.spawn(x[i] + Math.cos(ang) * r, y[i] + Math.sin(ang) * r,
           vx[i] + Math.cos(ang) * sp, vy[i] + Math.sin(ang) * sp, g);
-        if (c >= 0) cd[c] = SQUEEZE_CD;
+        if (c >= 0) cd[c] = this.squeezeCd();
         made++;
       }
       if (this.n < 800) this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 2, 140, 0.3);
