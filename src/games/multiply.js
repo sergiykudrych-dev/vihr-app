@@ -8,7 +8,7 @@ import { audio } from '../audio/engine.js';
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
 const BR = 1.6;             // радиус шарика
-const MAX = 24000;        // больше шариков не бывает
+const MAX = 12000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
@@ -85,6 +85,7 @@ export class MultiplyGame extends Game {
     this.n = 0;
     this.hold = 0;
     this.time = 0;
+    if (!this.limit) this.limit = MAX;
     this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5; this.w2 = -0.9;
     this.spawn(0, WALL_R * 0.72, 0, 0, 0);
     this.score = 1;
@@ -132,11 +133,14 @@ export class MultiplyGame extends Game {
     if (music) { this.music = music; if (music.beat) this.onBeat(); }
     this.fx.update(dt);
     this.pulse = Math.max(0, this.pulse - dt * 3);
+    // Подстраиваемся под телефон: если кадры долгие, больше шариков не растим
+    this.slow = (this.slow || 0) * 0.96 + (dt > 0.036 ? 0.04 : 0);
+    if (this.n > 1500 && this.slow > 0.45) { this.limit = Math.max(1500, this.n); this.slow = 0; }
     dt = Math.min(dt, 1 / 30);
     this.time += dt;
 
     // Финал: когда шариков набралось много — немного любуемся и начинаем заново
-    if (this.n >= MAX) {
+    if (this.n >= this.limit) {
       this.hold += dt;
       if (this.hold > 4) { this.restart(); return; }
     }
@@ -220,11 +224,11 @@ export class MultiplyGame extends Game {
     const cap = this.n > FLUID_N ? 1500 : 1e9;
     let made = 0;
     for (const i of squeezed) {
-      if (this.n >= MAX || made >= cap) break;
+      if (this.n >= this.limit || made >= cap) break;
       const g = Math.min(250, this.gen[i] + 1);
       this.gen[i] = g;
       cd[i] = SQUEEZE_CD;
-      for (let m = 1; m < MULT && this.n < MAX; m++) {
+      for (let m = 1; m < MULT && this.n < this.limit; m++) {
         const ang = Math.random() * TAU, r = BR * (0.5 + Math.random() * 2.5), sp = 40 + Math.random() * 110;
         const c = this.spawn(x[i] + Math.cos(ang) * r, y[i] + Math.sin(ang) * r,
           vx[i] + Math.cos(ang) * sp, vy[i] + Math.sin(ang) * sp, g);
@@ -240,7 +244,7 @@ export class MultiplyGame extends Game {
   relax(n) {
     const { x, y, vx, vy, cnt, cell } = this;
     const half = WALL_R + 20;
-    for (let pass = 0; pass < 3; pass++) {
+    for (let pass = 0; pass < 2; pass++) {
       cnt.fill(0);
       for (let i = 0; i < n; i++) {
         const cx = Math.max(1, Math.min(GRID - 2, ((x[i] + half) / CELL) | 0));
