@@ -146,6 +146,7 @@ export async function renderVideo({ game, seconds, music, ballSound = null, onPr
   const pad = game.padding || 0.9;
   const scale = (Math.min(width, height) / (ARENA * 2)) * pad;
   game.viewR = Math.hypot(width, height) / 2 / scale;
+  game.offline = true; // идёт сборка видео: можно рисовать в полном качестве
 
   const analysis = music ? analyseMusic(music, frames, store.data.react) : null;
   game.react = { ...store.data.react };

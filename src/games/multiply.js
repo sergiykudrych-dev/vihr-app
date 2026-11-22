@@ -7,7 +7,7 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 3.2;             // радиус шарика
+const BR = 4.5;             // радиус шарика
 const MAX = 70000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
@@ -136,9 +136,6 @@ export class MultiplyGame extends Game {
     if (music) { this.music = music; if (music.beat) this.onBeat(); }
     this.fx.update(dt);
     this.pulse = Math.max(0, this.pulse - dt * 3);
-    // Подстраиваемся под телефон: если кадры долгие, больше шариков не растим
-    this.slow = (this.slow || 0) * 0.96 + (dt > 0.036 ? 0.04 : 0);
-    if (this.n > 1500 && this.slow > 0.45) { this.limit = Math.max(1500, this.n); this.slow = 0; }
     dt = Math.min(dt, 1 / 30);
     this.time += dt;
 
@@ -419,7 +416,7 @@ export class MultiplyGame extends Game {
       ctx.fillStyle = GEN_COLORS[c];
       ctx.beginPath();
       let any = false;
-      const rect = this.n > 6000;
+      const rect = !this.offline && this.n > 15000; // в видео шарики всегда круглые
       for (let i = 0; i < this.n; i++) {
         if (this.gen[i] % GEN_COLORS.length !== c) continue;
         if (rect) ctx.rect(this.x[i] - R, this.y[i] - R, R * 2, R * 2);
