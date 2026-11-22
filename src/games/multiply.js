@@ -34,6 +34,7 @@ const SPEEDUP = 1.03;     // на каждое смыкание конусов �
 const SPEED_MAX = 4.2;   // предел суммарной «скорости» палок
 
 const PRESSURE = 1.1;
+const MULT = 20;          // из одного зажатого шарика получается 20 (размер тот же)
 const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
@@ -85,8 +86,8 @@ export class MultiplyGame extends Game {
     this.hold = 0;
     this.time = 0;
     this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5; this.w2 = -0.9;
-    for (let k = 0; k < 12; k++) this.spawn((k % 4 - 1.5) * 6, WALL_R * 0.72 - ((k / 4) | 0) * 6, 0, 0, 0);
-    this.score = 12;
+    this.spawn(0, WALL_R * 0.72, 0, 0, 0);
+    this.score = 1;
   }
 
   spawn(x, y, vx, vy, gen) {
@@ -216,18 +217,20 @@ export class MultiplyGame extends Game {
     // 4. Удвоение зажатых
     let sounds = 0;
     // Когда уже тесно, новые шарики появляются не все сразу — куча успевает расправиться
-    const cap = this.n > FLUID_N ? 400 : 1e9;
+    const cap = this.n > FLUID_N ? 1500 : 1e9;
     let made = 0;
     for (const i of squeezed) {
       if (this.n >= MAX || made >= cap) break;
-      made++;
       const g = Math.min(250, this.gen[i] + 1);
       this.gen[i] = g;
       cd[i] = SQUEEZE_CD;
-      const ang = Math.random() * TAU;
-      const j = this.spawn(x[i] + Math.cos(ang) * BR * 0.6, y[i] + Math.sin(ang) * BR * 0.6,
-        vx[i] + Math.cos(ang) * 60, vy[i] + Math.sin(ang) * 60, g);
-      if (j >= 0) cd[j] = SQUEEZE_CD;
+      for (let m = 1; m < MULT && this.n < MAX; m++) {
+        const ang = Math.random() * TAU, r = BR * (0.5 + Math.random() * 2.5), sp = 40 + Math.random() * 110;
+        const c = this.spawn(x[i] + Math.cos(ang) * r, y[i] + Math.sin(ang) * r,
+          vx[i] + Math.cos(ang) * sp, vy[i] + Math.sin(ang) * sp, g);
+        if (c >= 0) cd[c] = SQUEEZE_CD;
+        made++;
+      }
       if (this.n < 800) this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 2, 140, 0.3);
       if (sounds < 2 && (this.n < 300 || Math.random() < 0.1)) { sounds++; audio.hit(g * 2 + (i % 3), 0.45); }
     }
