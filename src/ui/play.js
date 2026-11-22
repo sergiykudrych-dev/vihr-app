@@ -2,20 +2,17 @@
 
 import { $, el, toast } from './dom.js';
 import { Runner } from '../core/runner.js';
-import { Recorder, canRecord, saveVideo } from '../core/recorder.js';
 import { GAMES, CUSTOM_META } from '../games/registry.js';
 import { store } from '../core/store.js';
 import { track } from '../audio/track.js';
 import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
 import { api } from '../core/api.js';
-import { shouldShowAd, shouldShowRecordAd, showAd } from '../core/ads.js';
+import { shouldShowAd, showAd } from '../core/ads.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 import { t } from '../i18n/index.js';
 
 let runner = null;
-let recorder = null;
-let recTimer = 0;
 let lastScore = -1;
 let currentId = null;
 let playStart = 0; // когда началась игра (для статистики)
@@ -66,102 +63,8 @@ export function initPlay() {
 
   initPalette();
 
-  recorder = new Recorder(canvas);
-  $('#rec-btn').addEventListener('click', toggleRecord);
-  $('#video-save').addEventListener('click', saveCurrentVideo);
-  $('#video-discard').addEventListener('click', closeVideo);
-  if (!canRecord()) $('#rec-btn').hidden = true;
-}
-
-const MIN_RECORD_MS = 2000; // короче iPhone может отдать пустой файл
-let videoBlob = null;
-let videoUrl = '';
-let stopping = false;
-
-function setRecButton(recording) {
-  const btn = $('#rec-btn');
-  btn.setAttribute('aria-pressed', String(recording));
-  btn.setAttribute('aria-label', recording ? t('Остановить запись') : t('Записать видео'));
-}
-
-async function toggleRecord() {
-  const btn = $('#rec-btn');
-  if (stopping) return;
-  if (recorder.active) {
-    // Слишком короткая запись — дописываем до 2 секунд, потом останавливаем
-    stopping = true;
-    btn.setAttribute('aria-busy', 'true');
-    const left = MIN_RECORD_MS - (performance.now() - recorder.startedAt);
-    if (left > 0) await new Promise((r) => setTimeout(r, left));
-    clearInterval(recTimer);
-    $('#rec-time').hidden = true;
-    const blob = await recorder.stop();
-    btn.removeAttribute('aria-busy');
-    setRecButton(false);
-    stopping = false;
-    if (!blob || !blob.size) { toast(t('Не получилось записать. Попробуй ещё раз')); return; }
-    // Реклама на кнопке «Остановить запись»: видео уже готово, показываем его после рекламы
-    if (shouldShowRecordAd()) {
-      // Пока идёт реклама: игра на паузе, свои звуки и трек выключены (чтобы ничего не пикало под рекламой)
-      const wasMuted = audio.muted, trackWasPlaying = track.playing;
-      audio.muted = true;
-      if (trackWasPlaying) track.pause();
-      runner.stop();
-      await showAd(currentId);
-      audio.muted = wasMuted;
-      if (!location.hash.startsWith('#play')) return; // пока шла реклама, игрок мог уйти
-      runner.start();
-      if (trackWasPlaying) track.play();
-    }
-    showVideo(blob);
-    return;
-  }
-  try {
-    recorder.start();
-  } catch (e) {
-    console.error(e);
-    toast(t('Запись не поддерживается в этом браузере'));
-    return;
-  }
-  setRecButton(true);
-  const time = $('#rec-time');
-  time.hidden = false;
-  time.textContent = '0:00';
-  recTimer = setInterval(() => {
-    const s = Math.floor((performance.now() - recorder.startedAt) / 1000);
-    time.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  }, 250);
-}
-
-function showVideo(blob) {
-  closeVideo();
-  videoBlob = blob;
-  videoUrl = URL.createObjectURL(blob);
-  const v = $('#video-preview');
-  v.src = videoUrl;
-  v.play().catch(() => {});
-  $('#video-sheet').hidden = false;
-}
-
-function closeVideo() {
-  const v = $('#video-preview');
-  v.pause();
-  v.removeAttribute('src');
-  v.load();
-  if (videoUrl) URL.revokeObjectURL(videoUrl);
-  videoUrl = '';
-  videoBlob = null;
-  $('#video-sheet').hidden = true;
-}
-
-async function saveCurrentVideo() {
-  if (!videoBlob) return;
-  // Вызывается прямо из нажатия — iPhone разрешит «Сохранить видео» в меню «Поделиться»
-  const result = await saveVideo(videoBlob);
-  if (result === 'cancelled') return;
-  closeVideo();
-  api.event('record', currentId);
-  toast(result === 'shared' ? t('Готово') : t('Видео скачано'));
+  // Видео собирается отдельно, на экране «Видео» — там выбираются игра, цвета, время и музыка
+  $('#rec-btn').addEventListener('click', () => go('studio'));
 }
 
 export async function enterPlay(id) {
@@ -210,12 +113,6 @@ document.addEventListener('visibilitychange', () => {
 export async function leavePlay() {
   flushPlay();
   audio.setTrackMix(1); // игра могла приглушить трек — возвращаем громкость
-  if (recorder && recorder.active) await recorder.stop();
-  clearInterval(recTimer);
-  $('#rec-time').hidden = true;
-  setRecButton(false);
-  stopping = false;
-  closeVideo();
   closePalette();
   runner.stop();
   runner.setGame(null);
@@ -376,7 +273,7 @@ function openPalette() {
 function closePalette() {
   $('#palette-sheet').hidden = true;
   $('#game-palette').setAttribute('aria-expanded', 'false');
-  if (canRecord()) $('#rec-btn').hidden = false;
+  $('#rec-btn').hidden = false;
 }
 
 /** Кнопка цветов видна только в играх, которые умеют менять палитру. */

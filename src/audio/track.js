@@ -36,6 +36,7 @@ class Track {
     el.preload = 'auto';
     this.el = el;
     this.name = file.name;
+    this.file = file;
     this._url = url;
     this._source = audio.ctx.createMediaElementSource(el);
     this._source.connect(audio.trackGain);
@@ -66,6 +67,7 @@ class Track {
     this.el = null;
     audio.musicPlaying = false;
     this.name = '';
+    this.file = null;
     this.peaks = null;
     this._emit();
   }

@@ -64,6 +64,10 @@ class AudioEngine {
    * шарик пробивает кольца — музыка громче, бьётся о стенку — тише.
    */
   setTrackMix(m) {
+    if (this.cap) {
+      if (Math.abs((this.cap.lastMix ?? 1) - m) >= 0.005) { this.cap.lastMix = m; this.cap.mix.push({ t: this.cap.t, m }); }
+      return;
+    }
     if (Math.abs((this.trackMix ?? 1) - m) < 0.005) return;
     this.trackMix = m;
     this._applyTrackGain(0.08);
@@ -87,18 +91,19 @@ class AudioEngine {
    * @param {object} [o] { pack, octave }
    */
   hit(index, vel = 0.7, o = {}) {
-    if (!this.ready || this.muted) return;
+    const cap = this.cap; // идёт сборка видео: ноты не играем, а записываем с точным временем
+    if (!cap && (!this.ready || this.muted)) return;
     // Под музыку касания тише (или совсем выключены) — настройка на экране «Трек»
-    const mix = this.musicPlaying ? this.hitsWithMusic : 1;
+    const mix = (cap ? cap.withMusic : this.musicPlaying) ? this.hitsWithMusic : 1;
     if (mix <= 0.001) return;
     vel *= mix;
-    const now = performance.now();
+    const now = cap ? cap.t * 1000 : performance.now();
     this._hits = this._hits.filter((t) => now - t < WINDOW_MS);
     if (this._hits.length >= MAX_HITS_PER_WINDOW) return;
     const key = `${o.pack || this.pack}:${index}`;
     if (now - (this._lastNote.get(key) || 0) < SAME_NOTE_GAP_MS) return;
     this._lastNote.set(key, now);
-    if (this.onHit) this.onHit(index, vel);
+    if (this.onHit && !cap) this.onHit(index, vel);
     this._hits.push(now);
 
     const pack = PACKS[o.pack || this.pack] || PACKS.glass;
@@ -107,7 +112,27 @@ class AudioEngine {
     const i = ((Math.round(index) % span) + span) % span;
     const f = noteFreq(i, this.scale, (pack.octave || 0) + (o.octave || 0));
     const v = Math.max(0.02, Math.min(1, vel));
+    if (cap) { cap.events.push({ pack: PACKS[o.pack || this.pack] ? (o.pack || this.pack) : 'glass', f, v, when: cap.t }); return; }
     pack.play(this.ctx, this.master, f, v, this.ctx.currentTime + 0.001);
+  }
+
+  /** Начать запись нот для видео: время идёт от cap.t (секунды), а не от часов телефона. */
+  beginCapture(withMusic) {
+    this.cap = { t: 0, events: [], mix: [], withMusic, lastMix: 1 };
+    this._savedMusic = this.musicPlaying;
+    this.musicPlaying = withMusic;
+    this._hits = [];
+    this._lastNote = new Map();
+  }
+
+  /** Закончить запись; возвращает { events, mix }. */
+  endCapture() {
+    const c = this.cap;
+    this.cap = null;
+    this.musicPlaying = this._savedMusic;
+    this._hits = [];
+    this._lastNote = new Map();
+    return c;
   }
 
   /** Короткое превью набора: три ноты подряд. */

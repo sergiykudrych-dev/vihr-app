@@ -5,6 +5,7 @@ import { initGames, enterGames } from './ui/games.js';
 import { initPlay, enterPlay, leavePlay } from './ui/play.js';
 import { initSounds } from './ui/sounds.js';
 import { initTrack, enterTrack } from './ui/track.js';
+import { initStudio, enterStudio, leaveStudio } from './ui/studio.js';
 import { initBuilder, enterBuilder, leaveBuilder } from './ui/builder.js';
 import { audio } from './audio/engine.js';
 import { lockViewport } from './core/nozoom.js';
@@ -31,6 +32,7 @@ initPlay();
 initSounds();
 initTrack();
 initBuilder();
+initStudio();
 initAdmin();
 
 route('games', { enter: enterGames });
@@ -38,6 +40,7 @@ route('play', { enter: enterPlay, leave: leavePlay });
 route('sounds', {});
 route('track', { enter: enterTrack });
 route('builder', { enter: enterBuilder, leave: leaveBuilder });
+route('studio', { enter: enterStudio, leave: leaveStudio });
 route('admin', { enter: enterAdmin });
 
 // Звук в браузере включается только после первого касания

@@ -232,3 +232,14 @@
 .screen[data-screen="builder"] .toggle-row { min-height: 44px; }
 .screen[data-screen="builder"] .field { gap: 4px; }
 .screen[data-screen="builder"] .field input[type="text"] { min-height: 44px; }
+
+/* ===== Видео ===== */
+.screen[data-screen="studio"] .studio-form { display: flex; flex-direction: column; gap: var(--sp-4); }
+.screen[data-screen="studio"] .palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.studio-progress { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-4); }
+.studio-bar { height: 10px; border-radius: 5px; background: var(--c-border); overflow: hidden; }
+.studio-bar__fill { height: 100%; width: 0; border-radius: 5px; background: var(--c-accent); transition: width .2s linear; }
+.studio-result { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-4); }
+.studio-video { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--r-md); background: var(--c-bg-game); object-fit: contain; }
+.studio-form[hidden], .studio-progress[hidden], .studio-result[hidden], .screen[data-screen="studio"] .field[hidden] { display: none !important; }
+.screen[data-screen="studio"] #st-create { position: sticky; bottom: 10px; z-index: 2; box-shadow: 0 0 0 8px var(--c-bg, #0B0A14); }

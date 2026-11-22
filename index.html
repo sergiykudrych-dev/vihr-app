@@ -16,10 +16,10 @@
 <script type="importmap">
 {
   "imports": {
-    "./src/audio/engine.js": "./src/audio/engine.js?v=c75e76a5",
+    "./src/audio/engine.js": "./src/audio/engine.js?v=aeb0b160",
     "./src/audio/packs.js": "./src/audio/packs.js?v=c2242361",
     "./src/audio/scales.js": "./src/audio/scales.js?v=5a4a8ca1",
-    "./src/audio/track.js": "./src/audio/track.js?v=ae6ca920",
+    "./src/audio/track.js": "./src/audio/track.js?v=bd0f0a77",
     "./src/config.js": "./src/config.js?v=d3b8ee49",
     "./src/core/ads.js": "./src/core/ads.js?v=0f661e19",
     "./src/core/api.js": "./src/core/api.js?v=79c1db69",
@@ -29,6 +29,7 @@
     "./src/core/runner.js": "./src/core/runner.js?v=8d39a776",
     "./src/core/store.js": "./src/core/store.js?v=35fed095",
     "./src/core/telegram.js": "./src/core/telegram.js?v=fe15cfb8",
+    "./src/core/video-render.js": "./src/core/video-render.js?v=569b55a7",
     "./src/games/base.js": "./src/games/base.js?v=45d5965f",
     "./src/games/custom.js": "./src/games/custom.js?v=03d4fc82",
     "./src/games/hexagon.js": "./src/games/hexagon.js?v=d2d8a4bc",
@@ -41,9 +42,9 @@
     "./src/games/spiral.js": "./src/games/spiral.js?v=0e7c2ad6",
     "./src/games/tunnel.js": "./src/games/tunnel.js?v=576af03c",
     "./src/games/vortex.js": "./src/games/vortex.js?v=a7b6c945",
-    "./src/i18n/en.js": "./src/i18n/en.js?v=051bff91",
+    "./src/i18n/en.js": "./src/i18n/en.js?v=cf5407f1",
     "./src/i18n/index.js": "./src/i18n/index.js?v=72ac6741",
-    "./src/main.js": "./src/main.js?v=e57a0a97",
+    "./src/main.js": "./src/main.js?v=e12a846e",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
     "./src/render/fx.js": "./src/render/fx.js?v=f3d3d22f",
     "./src/render/palettes.js": "./src/render/palettes.js?v=617e457a",
@@ -51,9 +52,11 @@
     "./src/ui/builder.js": "./src/ui/builder.js?v=19e1faab",
     "./src/ui/dom.js": "./src/ui/dom.js?v=13b8a61d",
     "./src/ui/games.js": "./src/ui/games.js?v=1dc9f9d9",
-    "./src/ui/play.js": "./src/ui/play.js?v=f0b1b99c",
+    "./src/ui/play.js": "./src/ui/play.js?v=456f8085",
     "./src/ui/sounds.js": "./src/ui/sounds.js?v=9beef739",
-    "./src/ui/track.js": "./src/ui/track.js?v=abe08d4d"
+    "./src/ui/studio.js": "./src/ui/studio.js?v=3abb5050",
+    "./src/ui/track.js": "./src/ui/track.js?v=abe08d4d",
+    "./src/vendor/mp4-muxer.js": "./src/vendor/mp4-muxer.js?v=95cfd9b2"
   }
 }
 </script>
@@ -62,7 +65,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
   <link rel="stylesheet" href="assets/css/base.css?v=58835cd1">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
-  <link rel="stylesheet" href="assets/css/screens.css?v=ccaa57a0">
+  <link rel="stylesheet" href="assets/css/screens.css?v=d7bd6a03">
 </head>
 <body>
 <div class="app" id="app">
@@ -116,8 +119,7 @@
       </button>
       <p class="game-hint" id="game-hint"></p>
       <div class="game-progress" id="game-progress" hidden><div class="game-progress__bar" id="game-progress-bar"></div></div>
-      <span class="rec-time" id="rec-time" hidden>0:00</span>
-      <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Записать видео"><span></span></button>
+      <button class="rec-btn" id="rec-btn" aria-pressed="false" aria-label="Создать видео"><span></span></button>
 
       <!-- Настройки колец: панель снизу, игра видна и меняется сразу -->
       <div class="palette-sheet" id="palette-sheet" role="dialog" aria-labelledby="palette-title" hidden>
@@ -138,18 +140,6 @@
         <div class="palette-custom" id="palette-custom" hidden>
           <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="palette-from"></label>
           <label class="palette-custom__item"><span class="small muted">Край</span><input type="color" id="palette-to"></label>
-        </div>
-      </div>
-
-      <!-- Готовое видео: превью и сохранение по отдельному нажатию (так требует iPhone) -->
-      <div class="video-sheet" id="video-sheet" role="dialog" aria-modal="true" aria-labelledby="video-sheet-title" hidden>
-        <div class="video-sheet__card">
-          <h2 class="video-sheet__title" id="video-sheet-title">Видео готово</h2>
-          <video class="video-sheet__video" id="video-preview" playsinline muted loop autoplay></video>
-          <div class="video-sheet__actions">
-            <button class="btn btn--ghost" id="video-discard" type="button">Удалить</button>
-            <button class="btn btn--primary" id="video-save" type="button">Сохранить</button>
-          </div>
         </div>
       </div>
     </div>
@@ -290,16 +280,69 @@
     </div>
   </section>
 
+  <!-- 6. Видео: настройки → сборка → скачать -->
+  <section class="screen" data-screen="studio" aria-labelledby="studio-title">
+    <header>
+      <h1 id="studio-title">Видео</h1>
+      <p class="muted">Выбери настройки — ролик соберётся сам</p>
+    </header>
+
+    <div class="studio-form" id="studio-form">
+      <div class="field">
+        <span class="label" id="st-game-label">Игра</span>
+        <div class="chips chips--wrap" id="st-games" role="group" aria-labelledby="st-game-label"></div>
+      </div>
+      <div class="field" id="st-rings" hidden>
+        <span class="label" id="st-rings-label">Сколько колец</span>
+        <div class="chips chips--wrap" id="st-ring-presets" role="group" aria-labelledby="st-rings-label"></div>
+      </div>
+      <div class="field" id="st-colors" hidden>
+        <span class="label" id="st-colors-label">Цвета</span>
+        <div class="palette-grid" id="st-palettes" role="group" aria-labelledby="st-colors-label"></div>
+        <div class="palette-custom" id="st-custom" hidden>
+          <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="st-from"></label>
+          <label class="palette-custom__item"><span class="small muted">Край</span><input type="color" id="st-to"></label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label" id="st-seconds-label">Длительность</span>
+        <div class="chips chips--wrap" id="st-seconds" role="group" aria-labelledby="st-seconds-label"></div>
+      </div>
+      <div class="field">
+        <span class="label" id="st-music-label">Музыка</span>
+        <div class="chips chips--wrap" id="st-music" role="group" aria-labelledby="st-music-label"></div>
+        <input type="file" id="st-music-file" hidden>
+      </div>
+      <p class="small muted" id="st-note"></p>
+      <button class="btn btn--primary btn--block" id="st-create" type="button">Создать видео</button>
+    </div>
+
+    <div class="card studio-progress" id="studio-progress" hidden>
+      <div class="label" id="st-phase">Рисую кадры…</div>
+      <div class="studio-bar"><div class="studio-bar__fill" id="st-bar"></div></div>
+      <p class="small muted">Не сворачивай приложение, пока идёт сборка</p>
+      <button class="btn btn--ghost" id="st-cancel" type="button">Отменить</button>
+    </div>
+
+    <div class="studio-result" id="studio-result" hidden>
+      <video class="studio-video" id="st-video" playsinline muted loop controls></video>
+      <p class="small muted" id="st-result-note"></p>
+      <button class="btn btn--primary btn--block" id="st-save" type="button">Сохранить</button>
+      <button class="btn btn--ghost btn--block" id="st-again" type="button">Сделать ещё</button>
+    </div>
+  </section>
+
   <nav class="tabbar" aria-label="Разделы">
     <a href="#games" data-tab="games"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-grid"></use></svg>Игры</a>
     <a href="#sounds" data-tab="sounds"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-sound"></use></svg>Звуки</a>
     <a href="#builder" data-tab="builder"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-plus-circle"></use></svg>Создать</a>
+    <a href="#studio" data-tab="studio"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-play"></use></svg>Видео</a>
     <a href="#track" data-tab="track"><svg class="icon icon--lg" aria-hidden="true"><use href="assets/img/icons/sprite.svg?v=8f4948d8#i-music"></use></svg>Трек</a>
   </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script type="module" src="src/main.js?v=e57a0a97"></script>
+<script type="module" src="src/main.js?v=e12a846e"></script>
 </body>
 </html>

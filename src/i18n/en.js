@@ -215,4 +215,28 @@ export const EN = {
 
   // Язык
   'Язык': 'Language',
+
+  // Экран «Видео»
+  'Видео': 'Video',
+  'Выбери настройки — ролик соберётся сам': 'Pick the settings and your clip builds itself',
+  'Длительность': 'Length',
+  'Музыка': 'Music',
+  'Без музыки': 'No music',
+  'Другой трек': 'Another track',
+  'Создать видео': 'Create video',
+  'Рисую кадры…': 'Drawing frames…',
+  'Собираю звук…': 'Mixing the sound…',
+  'Склеиваю видео…': 'Putting it together…',
+  'Читаю трек…': 'Reading the track…',
+  'Не сворачивай приложение, пока идёт сборка': 'Keep the app open while it builds',
+  'Отменить': 'Cancel',
+  'Сделать ещё': 'Make another',
+  '{n} с': '{n} s',
+  '{mb} МБ': '{mb} MB',
+  '{mb} МБ · без звука: этот браузер не умеет кодировать звук': '{mb} MB · no sound: this browser can’t encode audio',
+  'Горизонтальное видео 1080p, 60 к/с': 'Landscape video, 1080p, 60 fps',
+  'Этот браузер не умеет собирать видео. Обнови iOS или Telegram.': 'This browser can’t build videos. Update iOS or Telegram.',
+  'Не получилось прочитать трек — сделаю без музыки': 'Couldn’t read the track — making it without music',
+  'Сборка отменена': 'Cancelled',
+  'Не получилось собрать видео. Попробуй ещё раз': 'Couldn’t build the video. Try again',
 };
