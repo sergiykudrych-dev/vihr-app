@@ -7,7 +7,7 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 1.6;             // радиус шарика
+const BR = 3.2;             // радиус шарика
 const MAX = 70000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
