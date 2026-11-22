@@ -119,7 +119,7 @@ async function pickVideoConfig() {
  * @param {object} o { game, seconds, music: AudioBuffer|null, onProgress(0..1, phase), signal }
  * @returns {Promise<{blob: Blob, hasAudio: boolean}>}
  */
-export async function renderVideo({ game, seconds, music, onProgress = () => {}, signal }) {
+export async function renderVideo({ game, seconds, music, ballSound = null, onProgress = () => {}, signal }) {
   const vc = await pickVideoConfig();
   if (!vc) throw new Error('no-video-encoder');
   const { width, height } = vc;
@@ -149,7 +149,7 @@ export async function renderVideo({ game, seconds, music, onProgress = () => {},
 
   const analysis = music ? analyseMusic(music, frames, store.data.react) : null;
   game.react = { ...store.data.react };
-  audio.beginCapture(!!music);
+  audio.beginCapture(!!music, { pack: ballSound, off: !ballSound });
   let cap = null;
   try {
     const idle = { beat: false, bass: 0, level: 0, hue: 200 };

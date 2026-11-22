@@ -92,33 +92,35 @@ class AudioEngine {
    */
   hit(index, vel = 0.7, o = {}) {
     const cap = this.cap; // идёт сборка видео: ноты не играем, а записываем с точным временем
+    if (cap && cap.off) return; // в видео выбрано «без звука шариков»
     if (!cap && (!this.ready || this.muted)) return;
     // Под музыку касания тише (или совсем выключены) — настройка на экране «Трек»
-    const mix = (cap ? cap.withMusic : this.musicPlaying) ? this.hitsWithMusic : 1;
+    const mix = cap ? (cap.withMusic ? Math.max(0.5, this.hitsWithMusic) : 1) : (this.musicPlaying ? this.hitsWithMusic : 1);
     if (mix <= 0.001) return;
     vel *= mix;
     const now = cap ? cap.t * 1000 : performance.now();
     this._hits = this._hits.filter((t) => now - t < WINDOW_MS);
     if (this._hits.length >= MAX_HITS_PER_WINDOW) return;
-    const key = `${o.pack || this.pack}:${index}`;
+    const packKey = (cap && cap.pack) || o.pack || this.pack;
+    const key = `${packKey}:${index}`;
     if (now - (this._lastNote.get(key) || 0) < SAME_NOTE_GAP_MS) return;
     this._lastNote.set(key, now);
     if (this.onHit && !cap) this.onHit(index, vel);
     this._hits.push(now);
 
-    const pack = PACKS[o.pack || this.pack] || PACKS.glass;
+    const pack = PACKS[packKey] || PACKS.glass;
     // Держим ноты в приятном диапазоне ~2 октавы, чтобы не уходить в писк
     const span = 12;
     const i = ((Math.round(index) % span) + span) % span;
     const f = noteFreq(i, this.scale, (pack.octave || 0) + (o.octave || 0));
     const v = Math.max(0.02, Math.min(1, vel));
-    if (cap) { cap.events.push({ pack: PACKS[o.pack || this.pack] ? (o.pack || this.pack) : 'glass', f, v, when: cap.t }); return; }
+    if (cap) { cap.events.push({ pack: PACKS[packKey] ? packKey : 'glass', f, v, when: cap.t }); return; }
     pack.play(this.ctx, this.master, f, v, this.ctx.currentTime + 0.001);
   }
 
   /** Начать запись нот для видео: время идёт от cap.t (секунды), а не от часов телефона. */
-  beginCapture(withMusic) {
-    this.cap = { t: 0, events: [], mix: [], withMusic, lastMix: 1 };
+  beginCapture(withMusic, sound = {}) {
+    this.cap = { t: 0, events: [], mix: [], withMusic, lastMix: 1, pack: sound.pack || null, off: !!sound.off };
     this._savedMusic = this.musicPlaying;
     this.musicPlaying = withMusic;
     this._hits = [];

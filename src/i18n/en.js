@@ -222,6 +222,8 @@ export const EN = {
   'Длительность': 'Length',
   'Музыка': 'Music',
   'Без музыки': 'No music',
+  'Звук шариков': 'Ball sound',
+  'Без звука': 'No sound',
   'Другой трек': 'Another track',
   'Создать видео': 'Create video',
   'Рисую кадры…': 'Drawing frames…',

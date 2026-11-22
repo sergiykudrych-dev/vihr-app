@@ -12,6 +12,7 @@ import { api } from '../core/api.js';
 import { shouldShowRecordAd, showAd } from '../core/ads.js';
 import { saveVideo } from '../core/recorder.js';
 import { canRenderVideo, renderVideo, decodeMusic } from '../core/video-render.js';
+import { PACKS } from '../audio/packs.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 import { go } from '../core/router.js';
 import { t } from '../i18n/index.js';
@@ -20,6 +21,7 @@ const SECONDS = [10, 15, 30, 60];
 
 let gameId = null;
 let seconds = 30;
+let ballSound = 'glass';   // набор звуков удара или 'off'
 let musicMode = 'none';     // 'none' | 'track'
 let musicFile = null;       // выбранный файл с музыкой
 let probe = null;           // игра в превью — она же подсказывает, какие настройки умеет
@@ -50,6 +52,7 @@ export function initStudio() {
     renderNote();
   }, 'chip');
 
+  ballSound = store.data.studioSound || store.data.pack || 'glass';
   preview = new Runner($('#st-preview'), { padding: 0.9 });
   initRingInput();
   $('#st-music-file').addEventListener('change', onMusicFile);
@@ -81,6 +84,7 @@ export function enterStudio() {
   renderGames();
   pickGame(gameId);
   renderMusic();
+  renderSound();
   renderNote();
 }
 
@@ -113,6 +117,7 @@ function showForm() {
   $('#st-save').hidden = true;
   $('#st-video').hidden = true;
   $('#st-preview').hidden = false;
+  $('#studio-frame').hidden = false;
   if (probe) preview.start();
 }
 
@@ -217,6 +222,15 @@ function renderPalettes() {
   $('#st-custom').hidden = current !== 'custom';
 }
 
+function renderSound() {
+  const items = [...Object.entries(PACKS).map(([k, p]) => [k, p.name]), ['off', t('Без звука')]];
+  pressGroup($('#st-sound'), items, ballSound, (v) => {
+    ballSound = v;
+    store.set('studioSound', v);
+    if (v !== 'off') audio.preview(v); // коротко проигрываем, как звучит
+  }, 'chip');
+}
+
 function renderMusic() {
   const name = musicFile ? (musicFile.name.length > 20 ? musicFile.name.slice(0, 18) + '…' : musicFile.name) : t('Загрузить трек');
   const items = [['none', t('Без музыки')], ['track', musicFile ? '♪ ' + name : name]];
@@ -268,6 +282,7 @@ async function create() {
   $('#studio-form').hidden = true;
   $('#studio-progress').hidden = false;
   $('#st-create').hidden = true;
+  $('#studio-frame').hidden = true; // пока идёт сборка, превью не нужно
   preview.stop();
   setProgress(0, 'music');
   keepAwake();
@@ -281,7 +296,7 @@ async function create() {
     if (musicMode === 'track' && musicFile) {
       try { music = await decodeMusic(musicFile); } catch (e) { toast(t('Не получилось прочитать трек — сделаю без музыки')); }
     }
-    const { blob, hasAudio } = await renderVideo({ game, seconds, music, onProgress: setProgress, signal: abort.signal });
+    const { blob, hasAudio } = await renderVideo({ game, seconds, music, ballSound: ballSound === 'off' ? null : ballSound, onProgress: setProgress, signal: abort.signal });
     $('#studio-progress').hidden = true;
     api.event('record', gameId);
     // Реклама, когда видео уже готово: игрок получает ролик сразу после неё
@@ -320,6 +335,7 @@ function showResult(blob, hasAudio) {
   $('#st-create').hidden = true;
   $('#st-save').hidden = false;
   $('#st-preview').hidden = true;
+  $('#studio-frame').hidden = false;
   v.hidden = false;
 }
 
