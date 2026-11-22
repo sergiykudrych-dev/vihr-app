@@ -9,7 +9,7 @@ const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
 const BR = 1.6;             // радиус шарика
 const MAX = 24000;        // больше шариков не бывает
-const GRAV = 380;
+const GRAV = 300;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
 const ARM_E = 0.05;       // упругость конусов
@@ -33,7 +33,7 @@ const SPIN = 0.55;       // рад/с: «челюсти» целиком кру�
 const SPEEDUP = 1.03;     // на каждое смыкание конусов вращение ускоряется
 const SPEED_MAX = 1.8;
 
-const PRESSURE = 0.5;
+const PRESSURE = 1.1;
 const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
@@ -243,7 +243,7 @@ export class MultiplyGame extends Game {
   relax(n) {
     const { x, y, vx, vy, cnt, cell } = this;
     const half = WALL_R + 20;
-    for (let pass = 0; pass < 2; pass++) {
+    for (let pass = 0; pass < 3; pass++) {
       cnt.fill(0);
       for (let i = 0; i < n; i++) {
         const cx = Math.max(1, Math.min(GRID - 2, ((x[i] + half) / CELL) | 0));
@@ -258,7 +258,7 @@ export class MultiplyGame extends Game {
         const k = PRESSURE;
         let dx = gx * k, dy = gy * k;
         const m = Math.abs(dx) + Math.abs(dy);
-        if (m > 2.5) { dx *= 2.5 / m; dy *= 2.5 / m; }
+        if (m > 3) { dx *= 3 / m; dy *= 3 / m; }
         x[i] += dx; y[i] += dy;
         vx[i] += dx * 4; vy[i] += dy * 4;
       }
