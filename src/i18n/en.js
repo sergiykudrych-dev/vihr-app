@@ -223,6 +223,7 @@ export const EN = {
   'Музыка': 'Music',
   'Без музыки': 'No music',
   'Звук шариков': 'Ball sound',
+  'Количество шариков': 'Number of balls',
   'Без звука': 'No sound',
   'Другой трек': 'Another track',
   'Создать видео': 'Create video',

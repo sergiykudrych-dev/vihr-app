@@ -24,6 +24,7 @@ let seconds = 30;
 let ballSound = 'glass';   // набор звуков удара или 'off'
 let musicMode = 'none';     // 'none' | 'track'
 let musicFile = null;       // выбранный файл с музыкой
+let ballDefault = 1;        // сколько шариков в игре по умолчанию
 let probe = null;           // игра в превью — она же подсказывает, какие настройки умеет
 let preview = null;         // экран превью (живая игра в рамке 9:16)
 let busy = false;
@@ -97,12 +98,48 @@ export function leaveStudio() {
 }
 
 /** Превью: живая игра в рамке 9:16 с выбранными цветами и числом колец. */
+const NO_BALL_CHOICE = new Set(['plinko', 'smash', 'multiply', 'spiral']);
+
+/** Сколько шариков можно выбрать в игре (null — выбора нет). */
+function ballChoices(game) {
+  if (!game || !game.world || NO_BALL_CHOICE.has(gameId) || !(game.maxBalls > 1)) return null;
+  const max = Math.min(game.maxBalls, 12);
+  const set = new Set([1, 2, 3, 4, 5, 8, 12, max, ballDefault].filter((n) => n >= 1 && n <= max));
+  return [...set].sort((x, y) => x - y);
+}
+
+function applyBalls(game) {
+  const n = (store.data.ballCounts || {})[gameId];
+  if (!n || !ballChoices(game)) return;
+  let guard = 40;
+  while (game.world.balls.length < n && guard--) game.tap((Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160);
+  while (game.world.balls.length > n) game.world.balls.pop();
+}
+
+function renderBalls() {
+  const choices = ballChoices(probe);
+  $('#st-balls').hidden = !choices;
+  if (!choices) return;
+  const cur = (store.data.ballCounts || {})[gameId] || ballDefault;
+  $('#st-ball-presets').replaceChildren(...choices.map((n) => el('button', {
+    class: 'chip', type: 'button', 'aria-pressed': String(n === cur),
+    onclick: () => {
+      store.data.ballCounts = { ...(store.data.ballCounts || {}), [gameId]: n };
+      store.save();
+      startPreview();
+      renderBalls();
+    },
+  }, String(n))));
+}
+
 function startPreview() {
   const found = gameId && findGame(gameId);
   if (!found) return;
   const game = found.create();
   if (typeof game.setPalette === 'function') game.setPalette(currentPalette(), customColors());
   if (typeof game.setRingCount === 'function' && store.data.ringCounts[gameId]) game.setRingCount(store.data.ringCounts[gameId]);
+  ballDefault = game.world ? game.world.balls.length : 1;
+  applyBalls(game);
   probe = game;
   preview.setGame(game);
   preview.resize();
@@ -138,6 +175,7 @@ function pickGame(id) {
   $('#st-colors').hidden = !canColors;
   if (canRings) renderRings();
   if (canColors) renderPalettes();
+  renderBalls();
 }
 
 function setRingCount(n) {
@@ -292,6 +330,7 @@ async function create() {
     const game = found.create();
     if (typeof game.setPalette === 'function') game.setPalette(currentPalette(), customColors());
     if (typeof game.setRingCount === 'function' && store.data.ringCounts[gameId]) game.setRingCount(store.data.ringCounts[gameId]);
+    applyBalls(game);
 
     let music = null;
     if (musicMode === 'track' && musicFile) {
