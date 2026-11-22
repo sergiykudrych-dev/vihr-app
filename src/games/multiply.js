@@ -7,10 +7,10 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 5;             // радиус шарика
-const MAX = 1400;         // больше шариков не бывает
+const BR = 3;             // радиус шарика
+const MAX = 4000;         // больше шариков не бывает
 const GRAV = 380;
-const MAX_SPEED = 450;
+const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
 const ARM_E = 0.05;       // упругость конусов
 const BALL_E = 0.25;      // упругость между шариками
@@ -19,22 +19,22 @@ const BALL_E = 0.25;      // упругость между шариками
 const U0 = WALL_R * 0.4;
 const U1 = WALL_R;
 const H0 = 4;
-const H1 = 30;
+const H1 = 24;
 const ROD_W = 2.5;
 const ROD_U0 = 22;        // палка начинается не от самой оси — шарик может пролететь через центр, а не зависнуть на нём
 
 // Угол между палками: от GAP_MIN (конусы почти касаются у стенки) до GAP_MAX
 // (при GAP_MIN концы конусов у стенки почти смыкаются — меньше диаметра шарика)
-const GAP_MIN = 0.215;
+const GAP_MIN = 0.165;
 const GAP_MAX = 2.3;
 const GAP_PERIOD = 4.2;   // секунд на «разжал — сжал»
-const SWAY = 0.35;        // «челюсти» слегка качаются вокруг дна
-const SWAY_W = 0.45;      // рад/с
+const SWAY = 0.8;         // «челюсти» слегка качаются вокруг дна
+const SWAY_W = 0.5;       // рад/с
 
 const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
-const GEN_COLORS = ['#FF4FD8', '#4C5BFF', '#2EF0E0', '#FFE14D', '#39E58C', '#FF8A3D', '#FF3B3B'];
+const GEN_COLORS = ['#4C5BFF', '#FFE14D', '#2EF0E0', '#39E58C', '#FF8A3D', '#FF3B3B', '#F3D9A4'];
 
 const CELL = BR * 2;
 const GRID = Math.ceil((WALL_R * 2 + 40) / CELL);
@@ -79,7 +79,8 @@ export class MultiplyGame extends Game {
     this.hold = 0;
     this.time = 0;
     this.spawn(0, WALL_R * 0.55, 0, 0, 0);
-    this.score = 1;
+    this.spawn(0, WALL_R * 0.55 - 12, 0, 0, 0);
+    this.score = 2;
   }
 
   spawn(x, y, vx, vy, gen) {
@@ -126,7 +127,7 @@ export class MultiplyGame extends Game {
       this.hold += dt;
       if (this.hold > 4) { this.restart(); return; }
     }
-    const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
+    const steps = Math.max(1, Math.ceil(dt / (this.n > 3000 ? 1 / 60 : this.n > 1500 ? 1 / 80 : 1 / 120)));
     const h = dt / steps;
     for (let s = 0; s < steps; s++) this.step(h, this.time - dt + h * (s + 1));
     this.score = this.n;
@@ -206,9 +207,9 @@ export class MultiplyGame extends Game {
       const j = this.spawn(x[i] + Math.cos(ang) * BR * 0.6, y[i] + Math.sin(ang) * BR * 0.6,
         vx[i] + Math.cos(ang) * 60, vy[i] + Math.sin(ang) * 60, g);
       if (j >= 0) cd[j] = SQUEEZE_CD;
-      this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 3, 140, 0.35);
-      if (this.n < 400) audio.hit(g * 2 + (i % 3), 0.5);
-      else if (Math.random() < 0.25) audio.hit(g * 2, 0.4);
+      if (this.n < 1500) this.fx.burst(x[i], y[i], GEN_COLORS[g % GEN_COLORS.length], 2, 140, 0.3);
+      if (this.n < 300) audio.hit(g * 2 + (i % 3), 0.5);
+      else if (Math.random() < 0.06) audio.hit(g * 2, 0.35);
     }
   }
 
@@ -310,15 +311,16 @@ export class MultiplyGame extends Game {
       }
       ctx.globalCompositeOperation = 'source-over';
     }
-    const R = this.n < 150 ? BR * 0.7 : BR * 0.92;
+    const R = this.n < 150 ? BR * 0.8 : BR * 0.95;
     for (let c = 0; c < GEN_COLORS.length; c++) {
       ctx.fillStyle = GEN_COLORS[c];
       ctx.beginPath();
       let any = false;
+      const rect = this.n > 2500;
       for (let i = 0; i < this.n; i++) {
         if (this.gen[i] % GEN_COLORS.length !== c) continue;
-        ctx.moveTo(this.x[i] + R, this.y[i]);
-        ctx.arc(this.x[i], this.y[i], R, 0, TAU);
+        if (rect) ctx.rect(this.x[i] - R, this.y[i] - R, R * 2, R * 2);
+        else { ctx.moveTo(this.x[i] + R, this.y[i]); ctx.arc(this.x[i], this.y[i], R, 0, TAU); }
         any = true;
       }
       if (any) ctx.fill();
