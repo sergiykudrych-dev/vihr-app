@@ -102,8 +102,16 @@ async function toggleRecord() {
     if (!blob || !blob.size) { toast(t('Не получилось записать. Попробуй ещё раз')); return; }
     // Реклама на кнопке «Остановить запись»: видео уже готово, показываем его после рекламы
     if (shouldShowRecordAd()) {
+      // Пока идёт реклама: игра на паузе, свои звуки и трек выключены (чтобы ничего не пикало под рекламой)
+      const wasMuted = audio.muted, trackWasPlaying = track.playing;
+      audio.muted = true;
+      if (trackWasPlaying) track.pause();
+      runner.stop();
       await showAd(currentId);
+      audio.muted = wasMuted;
       if (!location.hash.startsWith('#play')) return; // пока шла реклама, игрок мог уйти
+      runner.start();
+      if (trackWasPlaying) track.play();
     }
     showVideo(blob);
     return;
