@@ -8,6 +8,7 @@ import { api } from './api.js';
 const startedAt = Date.now();
 let lastAdAt = 0;
 let playsSinceAd = 0;
+const RECORD_AD_GAP_MS = 60000; // после любой рекламы минуту не показываем снова на записи
 let controller = null;
 
 function getController() {
@@ -26,6 +27,13 @@ export function shouldShowAd() {
   if (now - startedAt < s.firstSec * 1000) return false;
   if (lastAdAt && now - lastAdAt < s.gapSec * 1000) return false;
   return playsSinceAd >= s.every;
+}
+
+/** Нужно ли показать рекламу, когда игрок остановил запись. Только общий минимум между показами, чтобы не подряд. */
+export function shouldShowRecordAd() {
+  const s = api.ads;
+  if (!s.enabled || !inTelegram || api.isAdmin) return false;
+  return !lastAdAt || Date.now() - lastAdAt >= RECORD_AD_GAP_MS;
 }
 
 /** Показать рекламу. Всегда завершается: и после просмотра, и при ошибке, и если рекламы нет. */

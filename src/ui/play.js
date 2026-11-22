@@ -9,7 +9,7 @@ import { track } from '../audio/track.js';
 import { audio } from '../audio/engine.js';
 import { go } from '../core/router.js';
 import { api } from '../core/api.js';
-import { shouldShowAd, showAd } from '../core/ads.js';
+import { shouldShowAd, shouldShowRecordAd, showAd } from '../core/ads.js';
 import { PALETTES, PALETTE_KEYS, paletteCss } from '../render/palettes.js';
 import { t } from '../i18n/index.js';
 
@@ -100,6 +100,11 @@ async function toggleRecord() {
     setRecButton(false);
     stopping = false;
     if (!blob || !blob.size) { toast(t('Не получилось записать. Попробуй ещё раз')); return; }
+    // Реклама на кнопке «Остановить запись»: видео уже готово, показываем его после рекламы
+    if (shouldShowRecordAd()) {
+      await showAd(currentId);
+      if (!location.hash.startsWith('#play')) return; // пока шла реклама, игрок мог уйти
+    }
     showVideo(blob);
     return;
   }
