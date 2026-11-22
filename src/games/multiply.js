@@ -27,7 +27,8 @@ const ROD_U0 = 22;        // палка начинается не от само�
 // (при GAP_MIN концы конусов у стенки почти смыкаются — меньше диаметра шарика)
 const GAP_MIN = 0.165;
 const GAP_MAX = 2.3;
-const GAP_PERIOD = 4.2;   // секунд на «разжал — сжал»
+const GAP_PERIOD = 2.2;   // секунд на «разжал — сжал»
+const SPIN = 0.55;       // рад/с: «челюсти» целиком крутятся по кругу
 const SWAY = 0.8;         // «челюсти» слегка качаются вокруг дна
 const SWAY_W = 0.5;       // рад/с
 
@@ -94,8 +95,8 @@ export class MultiplyGame extends Game {
   /** Углы палок и их угловые скорости в момент t. */
   arms(t) {
     // Центр «челюстей» качается вокруг дна (экранный низ = +π/2), а угол между палками сжимается и разжимается
-    const c = Math.PI / 2 + SWAY * Math.sin(SWAY_W * t);
-    const cRate = SWAY * SWAY_W * Math.cos(SWAY_W * t);
+    const c = Math.PI / 2 + SPIN * t;
+    const cRate = SPIN;
     const mid = (GAP_MAX + GAP_MIN) / 2, amp = (GAP_MAX - GAP_MIN) / 2;
     const w = TAU / GAP_PERIOD;
     const gap = mid + amp * Math.cos(w * t);
