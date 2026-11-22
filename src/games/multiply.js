@@ -31,7 +31,7 @@ const GAP_PERIOD = 2.2;   // секунд на «разжал — сжал»
 const SPIN = 0.55;       // рад/с: «челюсти» целиком крутятся по кругу
 
 const SPEEDUP = 1.03;     // на каждое смыкание конусов вращение ускоряется
-const SPEED_MAX = 1.8;
+const SPEED_MAX = 4.2;   // предел суммарной «скорости» палок
 
 const PRESSURE = 1.1;
 const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
@@ -84,10 +84,9 @@ export class MultiplyGame extends Game {
     this.n = 0;
     this.hold = 0;
     this.time = 0;
-    this.rot = 0; this.ph = 0; this.dir = 1; this.sp = 1;
-    this.spawn(0, WALL_R * 0.55, 0, 0, 0);
-    this.spawn(0, WALL_R * 0.55 - 12, 0, 0, 0);
-    this.score = 2;
+    this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5; this.w2 = -0.9;
+    for (let k = 0; k < 12; k++) this.spawn((k % 4 - 1.5) * 6, WALL_R * 0.72 - ((k / 4) | 0) * 6, 0, 0, 0);
+    this.score = 12;
   }
 
   spawn(x, y, vx, vy, gen) {
@@ -98,28 +97,23 @@ export class MultiplyGame extends Game {
     return i;
   }
 
-  /** Углы палок и их угловые скорости: челюсти крутятся по кругу, угол между палками сжимается и разжимается. */
+  /** Палки как две бусины на кольце: ездят по кругу каждая со своей скоростью. */
   arms() {
-    const c = Math.PI / 2 + this.rot;
-    const cRate = this.dir * SPIN * this.sp;
-    const mid = (GAP_MAX + GAP_MIN) / 2, amp = (GAP_MAX - GAP_MIN) / 2;
-    const w = (TAU / GAP_PERIOD) * this.sp;
-    const gap = mid + amp * Math.cos(this.ph);
-    const gapRate = -amp * w * Math.sin(this.ph);
-    return [
-      { a: c - gap / 2, w: cRate - gapRate / 2 },
-      { a: c + gap / 2, w: cRate + gapRate / 2 },
-    ];
+    return [{ a: this.a1, w: this.w1 }, { a: this.a2, w: this.w2 }];
   }
 
-  /** Двигает челюсти на h секунд. Когда конусы сомкнулись — вращение меняет направление и ускоряется. */
+  /** Двигает палки на h секунд. Сомкнулись конусами — отскакивают друг от друга (меняют направление) и разгоняются. */
   advance(h) {
-    const before = Math.floor((this.ph + Math.PI) / TAU);
-    this.rot += this.dir * SPIN * this.sp * h;
-    this.ph += (TAU / GAP_PERIOD) * this.sp * h;
-    if (Math.floor((this.ph + Math.PI) / TAU) !== before) {
-      this.dir = -this.dir;
-      this.sp = Math.min(SPEED_MAX, this.sp * SPEEDUP);
+    this.a1 += this.w1 * h;
+    this.a2 += this.w2 * h;
+    const gap = this.a2 - this.a1;
+    const hitLow = gap <= GAP_MIN && this.w2 < this.w1;
+    const hitHigh = gap >= TAU - GAP_MIN && this.w2 > this.w1;
+    if (hitLow || hitHigh) {
+      const k = Math.min(SPEED_MAX, Math.hypot(this.w1, this.w2) * SPEEDUP) / Math.max(1e-6, Math.hypot(this.w1, this.w2));
+      const t = this.w1; this.w1 = this.w2 * k; this.w2 = t * k;
+      if (hitLow) { const m = (this.a1 + this.a2) / 2; this.a1 = m - GAP_MIN / 2; this.a2 = m + GAP_MIN / 2; }
+      else { const m = (this.a1 + this.a2 + TAU) / 2; this.a2 = m - GAP_MIN / 2; this.a1 = m + GAP_MIN / 2 - TAU; }
       this.pulse = 1;
     }
   }
