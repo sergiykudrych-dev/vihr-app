@@ -35,8 +35,9 @@ const SPEED_MAX = 4.2;   // предел суммарной «скорости»
 
 const PRESSURE = 1.1;
 const MULT = 20;          // из одного зажатого шарика получается 20 (размер тот же)
-const LIVE_SPEED = 2.4;         // в игре палки быстрее: раунд ~10 секунд
-const LIVE_CD = 0.65;
+const LIVE_SPEED = 7;           // в игре палки быстрее: раунд ~10 секунд
+const LIVE_CD = 0.2; 
+const LIVE_ROUND = 9;          // секунд до перезапуска в игре
 const SQUEEZE_CD = 2.2;   // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
@@ -116,7 +117,7 @@ export class MultiplyGame extends Game {
     const hitLow = gap <= GAP_MIN && this.w2 < this.w1;
     const hitHigh = gap >= TAU - GAP_MIN && this.w2 > this.w1;
     if (hitLow || hitHigh) {
-      const k = Math.min(SPEED_MAX, Math.hypot(this.w1, this.w2) * SPEEDUP) / Math.max(1e-6, Math.hypot(this.w1, this.w2));
+      const k = Math.min(this.offline ? SPEED_MAX : SPEED_MAX * 2.2, Math.hypot(this.w1, this.w2) * SPEEDUP) / Math.max(1e-6, Math.hypot(this.w1, this.w2));
       const t = this.w1; this.w1 = this.w2 * k; this.w2 = t * k;
       if (hitLow) { const m = (this.a1 + this.a2) / 2; this.a1 = m - GAP_MIN / 2; this.a2 = m + GAP_MIN / 2; }
       else { const m = (this.a1 + this.a2 + TAU) / 2; this.a2 = m - GAP_MIN / 2; this.a1 = m + GAP_MIN / 2 - TAU; }
@@ -144,6 +145,7 @@ export class MultiplyGame extends Game {
 
     // Финал: круг переполнен — он лопается, шарики разлетаются, потом всё сначала
     if (this.popping) { this.popStep(dt); return; }
+    if (!this.offline && this.time > LIVE_ROUND) { this.restart(); return; } // в самой игре раунд — 9 секунд
     if (this.n >= this.limit) {
       this.hold += dt;
       // В видео круг лопается, в самой игре раунд просто начинается заново
