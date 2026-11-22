@@ -3,20 +3,22 @@
 // если он считает медленнее реального времени — видео всё равно получится ровным.
 
 import { Muxer, ArrayBufferTarget } from '../vendor/mp4-muxer.js';
+import { encodeAac } from '../vendor/aac-encode.js';
 import { ARENA } from '../games/base.js';
 import { audio } from '../audio/engine.js';
 import { PACKS } from '../audio/packs.js';
 import { store } from './store.js';
 
 export const FPS = 60;
-export const VIDEO_W = 1920;
-export const VIDEO_H = 1080;
+export const VIDEO_W = 1080; // вертикальное видео, как для TikTok и Shorts
+export const VIDEO_H = 1920;
 const SAMPLE_RATE = 48000;
 const BG = '#05040C';
 
 export function canRenderVideo() {
   return typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined'
-    && typeof OfflineAudioContext !== 'undefined' && !!(window.AudioContext || window.webkitAudioContext);
+    && typeof OfflineAudioContext !== 'undefined' && typeof WebAssembly !== 'undefined'
+    && !!(window.AudioContext || window.webkitAudioContext);
 }
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -101,23 +103,13 @@ async function mixAudio(cap, music, seconds) {
 }
 
 async function pickVideoConfig() {
-  const sizes = [[VIDEO_W, VIDEO_H, 9_000_000], [1280, 720, 5_000_000]];
+  const sizes = [[VIDEO_W, VIDEO_H, 10_000_000], [720, 1280, 6_000_000]];
   const codecs = ['avc1.64002A', 'avc1.4D402A', 'avc1.42002A', 'avc1.640028', 'avc1.4D4028'];
   for (const [width, height, bitrate] of sizes) {
     for (const codec of codecs) {
       const cfg = { codec, width, height, bitrate, framerate: FPS, latencyMode: 'quality' };
       try { const r = await VideoEncoder.isConfigSupported(cfg); if (r.supported) return { cfg, width, height }; } catch (e) { /* дальше */ }
     }
-  }
-  return null;
-}
-
-async function pickAudioConfig() {
-  if (typeof AudioEncoder === 'undefined' || typeof AudioData === 'undefined') return null;
-  const variants = [{ codec: 'mp4a.40.2', mux: 'aac' }, { codec: 'opus', mux: 'opus' }];
-  for (const v of variants) {
-    const cfg = { codec: v.codec, sampleRate: SAMPLE_RATE, numberOfChannels: 2, bitrate: 160_000 };
-    try { const r = await AudioEncoder.isConfigSupported(cfg); if (r.supported) return { cfg, mux: v.mux }; } catch (e) { /* дальше */ }
   }
   return null;
 }
@@ -130,7 +122,6 @@ async function pickAudioConfig() {
 export async function renderVideo({ game, seconds, music, onProgress = () => {}, signal }) {
   const vc = await pickVideoConfig();
   if (!vc) throw new Error('no-video-encoder');
-  const ac = await pickAudioConfig();
   const { width, height } = vc;
   const frames = Math.round(seconds * FPS);
 
@@ -138,7 +129,7 @@ export async function renderVideo({ game, seconds, music, onProgress = () => {},
   const muxer = new Muxer({
     target,
     video: { codec: 'avc', width, height, frameRate: FPS },
-    audio: ac ? { codec: ac.mux, numberOfChannels: 2, sampleRate: SAMPLE_RATE } : undefined,
+    audio: { codec: 'aac', numberOfChannels: 2, sampleRate: SAMPLE_RATE },
     fastStart: 'in-memory',
     firstTimestampBehavior: 'offset',
   });
@@ -152,7 +143,7 @@ export async function renderVideo({ game, seconds, music, onProgress = () => {},
   const canvas = document.createElement('canvas');
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d');
-  const pad = Math.min(game.padding || 0.9, 0.94);
+  const pad = game.padding || 0.9;
   const scale = (Math.min(width, height) / (ARENA * 2)) * pad;
   game.viewR = Math.hypot(width, height) / 2 / scale;
 
@@ -190,33 +181,17 @@ export async function renderVideo({ game, seconds, music, onProgress = () => {},
   }
   venc.close();
 
-  let hasAudio = false;
-  if (ac) {
-    onProgress(0.86, 'audio');
-    await tick();
-    const rendered = await mixAudio(cap, music, seconds);
-    onProgress(0.93, 'audio');
-    const aenc = new AudioEncoder({
-      output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-      error: (e) => { encError = e; },
-    });
-    aenc.configure(ac.cfg);
-    const L = rendered.getChannelData(0), R = rendered.getChannelData(1);
-    const block = 4800;
-    for (let s = 0; s < rendered.length; s += block) {
-      const n = Math.min(block, rendered.length - s);
-      const data = new Float32Array(n * 2);
-      data.set(L.subarray(s, s + n), 0);
-      data.set(R.subarray(s, s + n), n);
-      const ad = new AudioData({ format: 'f32-planar', sampleRate: SAMPLE_RATE, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round((s / SAMPLE_RATE) * 1e6), data });
-      aenc.encode(ad);
-      ad.close();
-      while (aenc.encodeQueueSize > 20) await tick();
-    }
-    await aenc.flush();
-    aenc.close();
-    hasAudio = true;
-  }
+  onProgress(0.86, 'audio');
+  await tick();
+  const rendered = await mixAudio(cap, music, seconds);
+  onProgress(0.92, 'audio');
+  const aac = await encodeAac([rendered.getChannelData(0), rendered.getChannelData(1)], SAMPLE_RATE, 160);
+  const dur = Math.round((aac.frameLength / SAMPLE_RATE) * 1e6);
+  aac.frames.forEach((fr, i) => {
+    const meta = i === 0 ? { decoderConfig: { codec: 'mp4a.40.2', numberOfChannels: 2, sampleRate: SAMPLE_RATE, description: aac.config } } : undefined;
+    muxer.addAudioChunkRaw(fr, 'key', Math.round((i * aac.frameLength / SAMPLE_RATE) * 1e6), dur, meta);
+  });
+  const hasAudio = true;
   if (encError) throw encError;
 
   onProgress(0.98, 'mux');

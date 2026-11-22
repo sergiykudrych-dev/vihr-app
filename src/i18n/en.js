@@ -234,7 +234,7 @@ export const EN = {
   '{n} с': '{n} s',
   '{mb} МБ': '{mb} MB',
   '{mb} МБ · без звука: этот браузер не умеет кодировать звук': '{mb} MB · no sound: this browser can’t encode audio',
-  'Горизонтальное видео 1080p, 60 к/с': 'Landscape video, 1080p, 60 fps',
+  'Вертикальное видео 1080×1920, 60 к/с': 'Vertical video, 1080×1920, 60 fps',
   'Этот браузер не умеет собирать видео. Обнови iOS или Telegram.': 'This browser can’t build videos. Update iOS or Telegram.',
   'Не получилось прочитать трек — сделаю без музыки': 'Couldn’t read the track — making it without music',
   'Сборка отменена': 'Cancelled',

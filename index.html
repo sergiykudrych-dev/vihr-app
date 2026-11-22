@@ -29,7 +29,7 @@
     "./src/core/runner.js": "./src/core/runner.js?v=8d39a776",
     "./src/core/store.js": "./src/core/store.js?v=35fed095",
     "./src/core/telegram.js": "./src/core/telegram.js?v=fe15cfb8",
-    "./src/core/video-render.js": "./src/core/video-render.js?v=569b55a7",
+    "./src/core/video-render.js": "./src/core/video-render.js?v=438d4d5f",
     "./src/games/base.js": "./src/games/base.js?v=45d5965f",
     "./src/games/custom.js": "./src/games/custom.js?v=03d4fc82",
     "./src/games/hexagon.js": "./src/games/hexagon.js?v=d2d8a4bc",
@@ -42,7 +42,7 @@
     "./src/games/spiral.js": "./src/games/spiral.js?v=0e7c2ad6",
     "./src/games/tunnel.js": "./src/games/tunnel.js?v=576af03c",
     "./src/games/vortex.js": "./src/games/vortex.js?v=a7b6c945",
-    "./src/i18n/en.js": "./src/i18n/en.js?v=cf5407f1",
+    "./src/i18n/en.js": "./src/i18n/en.js?v=508f5300",
     "./src/i18n/index.js": "./src/i18n/index.js?v=72ac6741",
     "./src/main.js": "./src/main.js?v=e12a846e",
     "./src/physics/world.js": "./src/physics/world.js?v=a1df362d",
@@ -54,8 +54,10 @@
     "./src/ui/games.js": "./src/ui/games.js?v=1dc9f9d9",
     "./src/ui/play.js": "./src/ui/play.js?v=456f8085",
     "./src/ui/sounds.js": "./src/ui/sounds.js?v=9beef739",
-    "./src/ui/studio.js": "./src/ui/studio.js?v=3abb5050",
+    "./src/ui/studio.js": "./src/ui/studio.js?v=99dd61f0",
     "./src/ui/track.js": "./src/ui/track.js?v=abe08d4d",
+    "./src/vendor/aac-encode.js": "./src/vendor/aac-encode.js?v=e38451b7",
+    "./src/vendor/fdk-aac.js": "./src/vendor/fdk-aac.js?v=10c80829",
     "./src/vendor/mp4-muxer.js": "./src/vendor/mp4-muxer.js?v=95cfd9b2"
   }
 }
@@ -65,7 +67,7 @@
   <link rel="stylesheet" href="assets/css/tokens.css?v=6faecd7a">
   <link rel="stylesheet" href="assets/css/base.css?v=58835cd1">
   <link rel="stylesheet" href="assets/css/components.css?v=18c4f86b">
-  <link rel="stylesheet" href="assets/css/screens.css?v=d7bd6a03">
+  <link rel="stylesheet" href="assets/css/screens.css?v=d641b257">
 </head>
 <body>
 <div class="app" id="app">
@@ -280,55 +282,66 @@
     </div>
   </section>
 
-  <!-- 6. Видео: настройки → сборка → скачать -->
+  <!-- 6. Видео: превью сверху, настройки, кнопка внизу -->
   <section class="screen" data-screen="studio" aria-labelledby="studio-title">
-    <header>
-      <h1 id="studio-title">Видео</h1>
-      <p class="muted">Выбери настройки — ролик соберётся сам</p>
-    </header>
+    <h1 id="studio-title" class="visually-hidden">Видео</h1>
+    <div class="studio-top">
+      <div class="studio-frame" id="studio-frame">
+        <canvas id="st-preview" aria-label="Так будет выглядеть видео"></canvas>
+        <video class="studio-video" id="st-video" playsinline muted loop controls hidden></video>
+      </div>
+    </div>
 
-    <div class="studio-form" id="studio-form">
-      <div class="field">
-        <span class="label" id="st-game-label">Игра</span>
-        <div class="chips chips--wrap" id="st-games" role="group" aria-labelledby="st-game-label"></div>
-      </div>
-      <div class="field" id="st-rings" hidden>
-        <span class="label" id="st-rings-label">Сколько колец</span>
-        <div class="chips chips--wrap" id="st-ring-presets" role="group" aria-labelledby="st-rings-label"></div>
-      </div>
-      <div class="field" id="st-colors" hidden>
-        <span class="label" id="st-colors-label">Цвета</span>
-        <div class="palette-grid" id="st-palettes" role="group" aria-labelledby="st-colors-label"></div>
-        <div class="palette-custom" id="st-custom" hidden>
-          <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="st-from"></label>
-          <label class="palette-custom__item"><span class="small muted">Край</span><input type="color" id="st-to"></label>
+    <div class="studio-scroll" id="studio-scroll">
+      <div class="studio-form" id="studio-form">
+        <div class="field">
+          <span class="label" id="st-game-label">Игра</span>
+          <div class="chips chips--wrap" id="st-games" role="group" aria-labelledby="st-game-label"></div>
         </div>
+        <div class="field" id="st-rings" hidden>
+          <span class="label" id="st-rings-label">Сколько колец</span>
+          <div class="ring-count">
+            <div class="chips" id="st-ring-presets" role="group" aria-labelledby="st-rings-label"></div>
+            <input class="ring-count__input" id="st-ring-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" aria-label="Своё число колец" aria-describedby="st-ring-hint">
+          </div>
+          <p class="small muted" id="st-ring-hint"></p>
+        </div>
+        <div class="field" id="st-colors" hidden>
+          <span class="label" id="st-colors-label">Цвета</span>
+          <div class="palette-grid" id="st-palettes" role="group" aria-labelledby="st-colors-label"></div>
+          <div class="palette-custom" id="st-custom" hidden>
+            <label class="palette-custom__item"><span class="small muted">Центр</span><input type="color" id="st-from"></label>
+            <label class="palette-custom__item"><span class="small muted">Край</span><input type="color" id="st-to"></label>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label" id="st-seconds-label">Длительность</span>
+          <div class="chips chips--wrap" id="st-seconds" role="group" aria-labelledby="st-seconds-label"></div>
+        </div>
+        <div class="field">
+          <span class="label" id="st-music-label">Музыка</span>
+          <div class="chips chips--wrap" id="st-music" role="group" aria-labelledby="st-music-label"></div>
+          <input type="file" id="st-music-file" hidden>
+        </div>
+        <p class="small muted" id="st-note"></p>
       </div>
-      <div class="field">
-        <span class="label" id="st-seconds-label">Длительность</span>
-        <div class="chips chips--wrap" id="st-seconds" role="group" aria-labelledby="st-seconds-label"></div>
+
+      <div class="card studio-progress" id="studio-progress" hidden>
+        <div class="label" id="st-phase">Рисую кадры…</div>
+        <div class="studio-bar"><div class="studio-bar__fill" id="st-bar"></div></div>
+        <p class="small muted">Не сворачивай приложение, пока идёт сборка</p>
+        <button class="btn btn--ghost" id="st-cancel" type="button">Отменить</button>
       </div>
-      <div class="field">
-        <span class="label" id="st-music-label">Музыка</span>
-        <div class="chips chips--wrap" id="st-music" role="group" aria-labelledby="st-music-label"></div>
-        <input type="file" id="st-music-file" hidden>
+
+      <div class="studio-result" id="studio-result" hidden>
+        <p class="small muted" id="st-result-note"></p>
+        <button class="btn btn--ghost btn--block" id="st-again" type="button">Сделать ещё</button>
       </div>
-      <p class="small muted" id="st-note"></p>
+    </div>
+
+    <div class="studio-bottom" id="studio-bottom">
       <button class="btn btn--primary btn--block" id="st-create" type="button">Создать видео</button>
-    </div>
-
-    <div class="card studio-progress" id="studio-progress" hidden>
-      <div class="label" id="st-phase">Рисую кадры…</div>
-      <div class="studio-bar"><div class="studio-bar__fill" id="st-bar"></div></div>
-      <p class="small muted">Не сворачивай приложение, пока идёт сборка</p>
-      <button class="btn btn--ghost" id="st-cancel" type="button">Отменить</button>
-    </div>
-
-    <div class="studio-result" id="studio-result" hidden>
-      <video class="studio-video" id="st-video" playsinline muted loop controls></video>
-      <p class="small muted" id="st-result-note"></p>
-      <button class="btn btn--primary btn--block" id="st-save" type="button">Сохранить</button>
-      <button class="btn btn--ghost btn--block" id="st-again" type="button">Сделать ещё</button>
+      <button class="btn btn--primary btn--block" id="st-save" type="button" hidden>Сохранить</button>
     </div>
   </section>
 
