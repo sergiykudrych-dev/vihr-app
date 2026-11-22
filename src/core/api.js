@@ -15,7 +15,7 @@ let disabled = readCache();
 let admin = false;
 let ads = { enabled: false, every: 3, gapSec: 180, firstSec: 120 };
 
-const TEST_ONLY = new Set(['multiply']);
+const TEST_ONLY = new Set([]); // игры в тестовом режиме (видны только админу); сейчас таких нет
 
 export const api = {
   get enabled() { return !!API_URL; },
