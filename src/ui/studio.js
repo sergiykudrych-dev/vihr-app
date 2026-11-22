@@ -118,6 +118,7 @@ function showForm() {
   $('#st-video').hidden = true;
   $('#st-preview').hidden = false;
   $('#studio-frame').hidden = false;
+  $('#studio-frame').classList.remove('is-video');
   if (probe) preview.start();
 }
 
@@ -336,6 +337,7 @@ function showResult(blob, hasAudio) {
   $('#st-save').hidden = false;
   $('#st-preview').hidden = true;
   $('#studio-frame').hidden = false;
+  $('#studio-frame').classList.add('is-video'); // готовое видео вертикальное
   v.hidden = false;
 }
 

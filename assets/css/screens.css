@@ -238,9 +238,10 @@
 .screen[data-screen="studio"] { overflow: hidden; padding: 0; gap: 0; }
 .studio-top { flex: none; display: flex; justify-content: center; padding: calc(var(--safe-top) + 12px) var(--sp-5) 12px; }
 .studio-frame {
-  position: relative; height: min(40dvh, 380px); aspect-ratio: 9 / 16; border-radius: var(--r-lg);
+  position: relative; width: 100%; max-width: 440px; aspect-ratio: 16 / 9; border-radius: var(--r-lg);
   overflow: hidden; background: #05040C; border: 1px solid var(--c-border-strong);
 }
+.studio-frame.is-video { width: auto; max-width: none; height: min(40dvh, 380px); aspect-ratio: 9 / 16; }
 .studio-frame canvas, .studio-frame video { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .studio-video { object-fit: contain; background: #05040C; }
 .studio-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px var(--sp-5) var(--sp-4); touch-action: pan-y; }
