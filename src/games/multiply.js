@@ -7,8 +7,8 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 1.3;             // радиус шарика
-const MAX = 70000;        // больше шариков не бывает
+const BR = 3.2;             // радиус шарика
+const MAX = 10000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
@@ -84,6 +84,7 @@ export class MultiplyGame extends Game {
   restart() {
     this.n = 0;
     this.hold = 0;
+    this.popping = false;
     this.time = 0;
     if (!this.limit) this.limit = MAX;
     this.a1 = Math.PI / 2 - 0.9; this.a2 = Math.PI / 2 + 0.9; this.w1 = 1.5; this.w2 = -0.9;
@@ -141,15 +142,46 @@ export class MultiplyGame extends Game {
     dt = Math.min(dt, 1 / 30);
     this.time += dt;
 
-    // Финал: когда шариков набралось много — немного любуемся и начинаем заново
+    // Финал: круг переполнен — он лопается, шарики разлетаются, потом всё сначала
+    if (this.popping) { this.popStep(dt); return; }
     if (this.n >= this.limit) {
       this.hold += dt;
-      if (this.hold > 4) { this.restart(); return; }
+      if (this.hold > 0.9) { this.startPop(); return; }
     }
     const steps = Math.max(1, Math.ceil(dt / (this.n > 6000 ? 1 / 60 : this.n > 2500 ? 1 / 80 : 1 / 120)));
     const h = dt / steps;
     for (let s = 0; s < steps; s++) { this.advance(h); this.step(h); }
     this.score = this.n;
+  }
+
+  startPop() {
+    this.popping = true;
+    this.popT = 0;
+    const { x, y, vx, vy } = this;
+    for (let i = 0; i < this.n; i++) {
+      const d = Math.hypot(x[i], y[i]) || 1, k = 260 + Math.random() * 520;
+      vx[i] = (x[i] / d) * k + (Math.random() - 0.5) * 120;
+      vy[i] = (y[i] / d) * k + (Math.random() - 0.5) * 120;
+    }
+    for (let k = 0; k < 40; k++) {
+      const a = (k / 40) * TAU;
+      this.fx.burst(Math.cos(a) * WALL_R, Math.sin(a) * WALL_R, '#FFFFFF', 3, 320, 0.7);
+    }
+    audio.hit(0, 1, { octave: -2 });
+    audio.hit(5, 1, { octave: -1 });
+    audio.hit(9, 0.9);
+    this.pulse = 1;
+  }
+
+  popStep(dt) {
+    this.popT += dt;
+    const { x, y, vx, vy } = this;
+    const drag = Math.pow(0.55, dt);
+    for (let i = 0; i < this.n; i++) {
+      x[i] += vx[i] * dt; y[i] += vy[i] * dt;
+      vx[i] *= drag; vy[i] *= drag;
+    }
+    if (this.popT > 1.8) this.restart();
   }
 
   step(h) {
@@ -327,8 +359,24 @@ export class MultiplyGame extends Game {
   draw(ctx) {
     // Круг
     ctx.lineWidth = 2.2;
-    ctx.strokeStyle = `rgba(255,255,255,${0.85 + this.pulse * 0.15})`;
-    ctx.beginPath(); ctx.arc(0, 0, WALL_R + 2, 0, TAU); ctx.stroke();
+    if (this.popping) {
+      // Круг лопнул: осколки кольца разлетаются и гаснут, на миг вспышка
+      const T = this.popT, alpha = Math.max(0, 1 - T / 1.1);
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.lineWidth = 3;
+      for (let k = 0; k < 28; k++) {
+        const a0 = (k / 28) * TAU, r = WALL_R + 2 + T * (200 + ((k * 37) % 11) * 28);
+        const off = T * (k % 2 ? 0.5 : -0.5);
+        ctx.beginPath(); ctx.arc(0, 0, r, a0 + off, a0 + off + TAU / 28 - 0.06); ctx.stroke();
+      }
+      if (T < 0.3) {
+        ctx.fillStyle = `rgba(255,255,255,${(0.3 - T) * 2})`;
+        ctx.beginPath(); ctx.arc(0, 0, WALL_R, 0, TAU); ctx.fill();
+      }
+    } else {
+      ctx.strokeStyle = `rgba(255,255,255,${0.85 + this.pulse * 0.15})`;
+      ctx.beginPath(); ctx.arc(0, 0, WALL_R + 2, 0, TAU); ctx.stroke();
+    }
 
     // Палки и конусы
     const arms = this.arms();
@@ -371,7 +419,7 @@ export class MultiplyGame extends Game {
       ctx.fillStyle = GEN_COLORS[c];
       ctx.beginPath();
       let any = false;
-      const rect = this.n > 3500;
+      const rect = this.n > 6000;
       for (let i = 0; i < this.n; i++) {
         if (this.gen[i] % GEN_COLORS.length !== c) continue;
         if (rect) ctx.rect(this.x[i] - R, this.y[i] - R, R * 2, R * 2);
