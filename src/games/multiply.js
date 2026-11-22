@@ -7,8 +7,8 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 1.6;             // радиус шарика
-const MAX = 12000;        // больше шариков не бывает
+const BR = 3;               // радиус шарика
+const MAX = 6000;         // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
@@ -35,7 +35,7 @@ const SPEED_MAX = 4.2;   // предел суммарной «скорости»
 
 const PRESSURE = 1.1;
 const MULT = 20;          // из одного зажатого шарика получается 20 (размер тот же)
-const SQUEEZE_CD = 0.55;  // после удвоения шарик пару мгновений не удваивается
+const SQUEEZE_CD = 2.2;   // после удвоения шарик пару мгновений не удваивается
 
 // Цвета по числу удвоений: розовый → синий → голубой → жёлтый → зелёный → оранжевый → красный
 const GEN_COLORS = ['#4C5BFF', '#FFE14D', '#2EF0E0', '#39E58C', '#FF8A3D', '#FF3B3B', '#F3D9A4'];
@@ -369,7 +369,7 @@ export class MultiplyGame extends Game {
       ctx.fillStyle = GEN_COLORS[c];
       ctx.beginPath();
       let any = false;
-      const rect = this.n > 1200;
+      const rect = this.n > 3500;
       for (let i = 0; i < this.n; i++) {
         if (this.gen[i] % GEN_COLORS.length !== c) continue;
         if (rect) ctx.rect(this.x[i] - R, this.y[i] - R, R * 2, R * 2);

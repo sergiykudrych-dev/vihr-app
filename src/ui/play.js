@@ -63,8 +63,6 @@ export function initPlay() {
 
   initPalette();
 
-  // Видео собирается отдельно, на экране «Видео» — там выбираются игра, цвета, время и музыка
-  $('#rec-btn').addEventListener('click', () => go('studio'));
 }
 
 export async function enterPlay(id) {
@@ -267,13 +265,11 @@ function openPalette() {
   $('#palette-sheet').hidden = false;
   $('#game-hint').classList.add('is-hidden');
   $('#game-palette').setAttribute('aria-expanded', 'true');
-  $('#rec-btn').hidden = true;
 }
 
 function closePalette() {
   $('#palette-sheet').hidden = true;
   $('#game-palette').setAttribute('aria-expanded', 'false');
-  $('#rec-btn').hidden = false;
 }
 
 /** Кнопка цветов видна только в играх, которые умеют менять палитру. */

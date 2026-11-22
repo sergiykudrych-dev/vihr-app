@@ -317,6 +317,11 @@ async function create() {
   const found = findGame(gameId);
   if (!found) return;
   busy = true;
+  // Реклама на кнопке «Создать видео»: показываем до сборки
+  if (shouldShowRecordAd()) {
+    await showAd(gameId);
+    if (location.hash !== '#studio') { busy = false; return; }
+  }
   abort = new AbortController();
   $('#studio-form').hidden = true;
   $('#studio-progress').hidden = false;
@@ -339,10 +344,6 @@ async function create() {
     const { blob, hasAudio } = await renderVideo({ game, seconds, music, ballSound: ballSound === 'off' ? null : ballSound, onProgress: setProgress, signal: abort.signal });
     $('#studio-progress').hidden = true;
     api.event('record', gameId);
-    // Реклама, когда видео уже готово: игрок получает ролик сразу после неё
-    if (shouldShowRecordAd()) {
-      await showAd(gameId);
-    }
     if (location.hash !== '#studio') return;
     showResult(blob, hasAudio);
   } catch (e) {
