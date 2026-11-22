@@ -7,8 +7,8 @@ import { audio } from '../audio/engine.js';
 
 const TAU = Math.PI * 2;
 const WALL_R = 300;       // радиус круга
-const BR = 3;               // радиус шарика
-const MAX = 6000;         // больше шариков не бывает
+const BR = 1.3;             // радиус шарика
+const MAX = 70000;        // больше шариков не бывает
 const GRAV = 300;
 const MAX_SPEED = 400;
 const WALL_E = 0.55;      // упругость стенки
@@ -117,6 +117,8 @@ export class MultiplyGame extends Game {
       if (hitLow) { const m = (this.a1 + this.a2) / 2; this.a1 = m - GAP_MIN / 2; this.a2 = m + GAP_MIN / 2; }
       else { const m = (this.a1 + this.a2 + TAU) / 2; this.a2 = m - GAP_MIN / 2; this.a1 = m + GAP_MIN / 2 - TAU; }
       this.pulse = 1;
+      // Конусы стукнулись — слышно звонкий удар (ниже по тону, чем у шариков)
+      audio.hit(2 + ((this.bounces = (this.bounces || 0) + 1) % 5), 0.95, { octave: -1 });
     }
   }
 
@@ -221,7 +223,7 @@ export class MultiplyGame extends Game {
     // 4. Удвоение зажатых
     let sounds = 0;
     // Когда уже тесно, новые шарики появляются не все сразу — куча успевает расправиться
-    const cap = this.n > FLUID_N ? 1500 : 1e9;
+    const cap = this.n > FLUID_N ? 4000 : 1e9;
     let made = 0;
     for (const i of squeezed) {
       if (this.n >= this.limit || made >= cap) break;
