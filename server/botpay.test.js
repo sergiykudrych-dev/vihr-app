@@ -20,6 +20,8 @@ await bot.handleUpdate({ message: { chat: { id: 42 }, from: user, text: '/setpac
 ok('не админ не может загрузить файл', st.pack.fileId === '');
 await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, caption: '/setpack', document: { file_id: 'FILE1', file_name: 'pack.zip' } } });
 ok('админ загрузил файл', st.pack.fileId === 'FILE1');
+await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, text: '/setpack' } });
+ok('/setpack без файла: подсказка', /📎/.test(last('sendMessage').b.text) && st.pack.fileId === 'FILE1');
 await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, text: '/setprice 75' } });
 ok('админ поменял цену', st.pack.price === 75);
 await bot.handleUpdate({ callback_query: { id: 'cb', data: 'pack', from: user, message: { chat: { id: 42 } } } });

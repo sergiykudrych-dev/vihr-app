@@ -93,6 +93,10 @@ export function startBot({ token, webAppUrl, adminIds, db = realDb, fetchFn = fe
       await send(chat, `✅ Файл пака сохранён: ${msg.document.file_name || 'без имени'}`);
       return;
     }
+    if (isAdmin && text.startsWith('/setpack')) {
+      await send(chat, 'Чтобы загрузить пак: нажмите 📎 → «Файл» → выберите архив и в подписи к нему напишите /setpack. Отдельное сообщение /setpack без файла не сработает.');
+      return;
+    }
     if (isAdmin && text.startsWith('/setprice')) {
       const n = Number(text.split(/\s+/)[1]);
       if (!Number.isInteger(n) || n < 1 || n > 10000) { await send(chat, 'Формат: /setprice 50 (от 1 до 10000 звёзд)'); return; }
