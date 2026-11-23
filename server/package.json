@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Сервер Вихря: статистика, админка, вкл/выкл игр, Telegram-бот",
-  "scripts": { "start": "node index.js", "test": "node test.js" },
+  "scripts": { "start": "node index.js", "test": "node test.js && node botpay.test.js" },
   "engines": { "node": ">=20" },
   "dependencies": { "pg": "^8.13.0" }
 }

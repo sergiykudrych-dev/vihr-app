@@ -35,6 +35,14 @@ export async function migrate() {
       id TEXT PRIMARY KEY,
       enabled BOOLEAN NOT NULL DEFAULT true
     );
+    CREATE TABLE IF NOT EXISTS sales (
+      charge_id TEXT PRIMARY KEY,
+      tg_id BIGINT NOT NULL,
+      item TEXT NOT NULL,
+      stars INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS sales_user_idx ON sales (tg_id, item);
   `);
 }
 
@@ -117,4 +125,40 @@ export async function stats() {
          FROM events WHERE created_at >= now() - interval '7 days'`),
   ]);
   return { ...tot, ...act, avg_sec: avg.avg_sec, videos_7d: rec.videos, ads_7d: rec.ads, ads_today: rec.ads_today, top_games: topGames, days };
+}
+
+// Пак видео за Telegram Stars. Файл хранится в Telegram (file_id), сюда пишем только его id и цену.
+export const PACK_DEFAULTS = { fileId: '', price: 50 };
+
+export async function packSettings() {
+  const r = await pool.query("SELECT value FROM settings WHERE key = 'pack'");
+  return { ...PACK_DEFAULTS, ...(r.rows[0]?.value || {}) };
+}
+
+export async function setPack(patch) {
+  const next = { ...(await packSettings()), ...patch };
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('pack', $1)
+     ON CONFLICT (key) DO UPDATE SET value = $1`, [JSON.stringify(next)]);
+  return next;
+}
+
+/** Записать оплату. Повтор того же charge_id не создаёт вторую продажу. */
+export async function addSale(chargeId, tgId, item, stars) {
+  await pool.query(
+    `INSERT INTO sales (charge_id, tg_id, item, stars) VALUES ($1,$2,$3,$4)
+     ON CONFLICT (charge_id) DO NOTHING`, [chargeId, tgId, item, stars]);
+}
+
+export async function hasBought(tgId, item) {
+  const r = await pool.query('SELECT 1 FROM sales WHERE tg_id = $1 AND item = $2 LIMIT 1', [tgId, item]);
+  return r.rowCount > 0;
+}
+
+export async function salesStats() {
+  const r = await pool.query(
+    `SELECT count(*)::int AS total, coalesce(sum(stars), 0)::int AS stars,
+            count(*) FILTER (WHERE created_at >= date_trunc('day', now()))::int AS today
+     FROM sales`);
+  return r.rows[0];
 }
