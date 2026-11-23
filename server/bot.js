@@ -87,14 +87,19 @@ export function startBot({ token, webAppUrl, adminIds, db = realDb, fetchFn = fe
       return;
     }
 
-    // Админ загружает файл пака: документ с подписью /setpack
-    if (isAdmin && msg.document && text.startsWith('/setpack')) {
-      await db.setPack({ fileId: msg.document.file_id });
-      await send(chat, `✅ Файл пака сохранён: ${msg.document.file_name || 'без имени'}`);
+    // Админ загружает файл пака: любой .zip от админа, документ с подписью /setpack
+    // или ответ /setpack на сообщение с файлом (на iPhone подпись к файлу не добавить).
+    const isZip = (d) => d && (/\.zip$/i.test(d.file_name || '') || /zip/.test(d.mime_type || ''));
+    const packDoc = msg.document && (text.startsWith('/setpack') || isZip(msg.document))
+      ? msg.document
+      : text.startsWith('/setpack') && msg.reply_to_message && msg.reply_to_message.document;
+    if (isAdmin && packDoc) {
+      await db.setPack({ fileId: packDoc.file_id });
+      await send(chat, `✅ Файл пака сохранён: ${packDoc.file_name || 'без имени'}\nЦена: /setprice 50 — проверить: /pack`);
       return;
     }
     if (isAdmin && text.startsWith('/setpack')) {
-      await send(chat, 'Чтобы загрузить пак: нажмите 📎 → «Файл» → выберите архив и в подписи к нему напишите /setpack. Отдельное сообщение /setpack без файла не сработает.');
+      await send(chat, 'Просто отправьте мне .zip-архив файлом — я сохраню его как пак. Или ответьте /setpack на сообщение с файлом.');
       return;
     }
     if (isAdmin && text.startsWith('/setprice')) {

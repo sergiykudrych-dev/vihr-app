@@ -21,7 +21,14 @@ ok('не админ не может загрузить файл', st.pack.fileId
 await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, caption: '/setpack', document: { file_id: 'FILE1', file_name: 'pack.zip' } } });
 ok('админ загрузил файл', st.pack.fileId === 'FILE1');
 await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, text: '/setpack' } });
-ok('/setpack без файла: подсказка', /📎/.test(last('sendMessage').b.text) && st.pack.fileId === 'FILE1');
+ok('/setpack без файла: подсказка', /zip/.test(last('sendMessage').b.text) && st.pack.fileId === 'FILE1');
+await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, document: { file_id: 'FILE2', file_name: 'spinly_pack_50.zip' } } });
+ok('zip без подписи от админа сохранён', st.pack.fileId === 'FILE2');
+await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, text: '/setpack', reply_to_message: { document: { file_id: 'FILE3', file_name: 'x.rar' } } } });
+ok('ответ /setpack на файл', st.pack.fileId === 'FILE3');
+await bot.handleUpdate({ message: { chat: { id: 42 }, from: { id: 42 }, document: { file_id: 'EVIL', file_name: 'a.zip' } } });
+ok('zip от обычного юзера игнор', st.pack.fileId === 'FILE3');
+await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, caption: '/setpack', document: { file_id: 'FILE1', file_name: 'pack.zip' } } });
 await bot.handleUpdate({ message: { chat: { id: 1 }, from: { id: 1 }, text: '/setprice 75' } });
 ok('админ поменял цену', st.pack.price === 75);
 await bot.handleUpdate({ callback_query: { id: 'cb', data: 'pack', from: user, message: { chat: { id: 42 } } } });
